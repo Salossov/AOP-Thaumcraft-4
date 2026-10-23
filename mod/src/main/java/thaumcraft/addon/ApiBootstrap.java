@@ -49,6 +49,7 @@ public final class ApiBootstrap {
                 for(var block:List.of(thaumcraft.registry.R3Content.WARDED_JAR.get(),thaumcraft.registry.R3Content.VOID_JAR.get())){var stack=new ItemStack(block);var tag=new net.minecraft.nbt.CompoundTag();var contents=new net.minecraft.nbt.CompoundTag();contents.putInt(aspect.getTag(),64);tag.put("Essentia",contents);tag.putString("AspectFilter",aspect.getTag());tag.putInt("TC4ProductionVersion",1);tag.putString("id","thaumcraft:essentia_transport");stack.set(net.minecraft.core.component.DataComponents.BLOCK_ENTITY_DATA,net.minecraft.world.item.component.CustomData.of(tag));stacks.add(stack);}
             }return stacks;}
             public boolean scanned(ItemStack stack){var data=thaumcraft.network.ClientKnowledge.aspects();String key=StackAspectRules.scanKey(stack,data.scanGroups());return ResearchApi.clientKnowledge().scanned(thaumcraft.api.knowledge.PlayerKnowledge.ScanKind.OBJECT).contains(key);}
+            public boolean scanned(net.minecraft.server.level.ServerPlayer player,ItemStack stack){return KnowledgeService.get(player).scanned(thaumcraft.api.knowledge.PlayerKnowledge.ScanKind.OBJECT).contains(ThaumcraftData.objectScanKey(player.server,stack));}
         });
         WandApi.install(new WandApi.Access(){
             public WandApi.Kind kind(ItemStack s){return s.getItem() instanceof thaumcraft.items.CastingWandItem wand?WandApi.Kind.valueOf(wand.kind().name()):WandApi.Kind.NONE;}
