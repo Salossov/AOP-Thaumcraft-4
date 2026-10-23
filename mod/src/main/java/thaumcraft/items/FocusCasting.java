@@ -16,6 +16,19 @@ import thaumcraft.registry.R2Sounds;
 
 public final class FocusCasting {
     private static final Map<ServerPlayer,Long> COOLDOWN=new WeakHashMap<>();
+    /** TC4 claims its shared cooldown before delegating a selected focus's swing. */
+    public static boolean tryBeginSwing(ServerPlayer player,ItemStack wand){
+        if(!player.server.isSameThread())throw new IllegalStateException("Focus swing requires its server game thread");
+        if(player instanceof net.neoforged.neoforge.common.util.FakePlayer||!player.isAlive()||player.isRemoved()||player.isSpectator()
+                ||player.serverLevel().getEntity(player.getUUID())!=player
+                ||(player.getMainHandItem()!=wand&&player.getOffhandItem()!=wand)||!WandFocus.supports(wand))return false;
+        var selected=WandFocus.get(wand);
+        if(!(selected.getItem() instanceof thaumcraft.api.wands.ItemFocusBasic focus))return false;
+        long now=player.server.getTickCount();
+        if(COOLDOWN.getOrDefault(player,Long.MIN_VALUE)>now)return false;
+        COOLDOWN.put(player,now+Math.max(1,(focus.getActivationCooldown(selected)+49L)/50L));
+        return true;
+    }
     public static boolean continuous(ItemStack wand){var focus=WandFocus.get(wand);var addon=thaumcraft.api.wands.FocusBehaviors.get(focus);if(addon!=null)return addon.behavior().continuous(focus);return focus.getItem() instanceof ThaumicFocusItem item&&(item.kind()==ThaumicFocusItem.Kind.EXCAVATION||item.kind()==ThaumicFocusItem.Kind.FIRE&&!item.isUpgradedWith(focus,FocusUpgradeType.fireball)||item.kind()==ThaumicFocusItem.Kind.SHOCK&&!item.isUpgradedWith(focus,FocusUpgradeType.earthshock));}
     public static boolean begin(ServerPlayer player,InteractionHand hand){var wand=player.getItemInHand(hand);var addon=thaumcraft.api.wands.FocusBehaviors.get(WandFocus.get(wand));if(addon!=null){endAddon(player);if(COOLDOWN.getOrDefault(player,Long.MIN_VALUE)>player.server.getTickCount()||!WandFocus.supports(wand)||!addon.behavior().begin(player,wand,WandFocus.get(wand),hand))return false;ACTIVE.put(player,new Active(wand,WandFocus.get(wand).copy(),addon.behavior()));if(continuous(wand)){player.startUsingItem(hand);return true;}try{return cast(player,wand);}finally{endAddon(player);}}if(!WandFocus.supports(wand)||!(WandFocus.get(wand).getItem() instanceof ThaumicFocusItem||WandFocus.get(wand).getItem() instanceof PechFocusItem))return false;if(continuous(wand)){player.startUsingItem(hand);return true;}return cast(player,wand);}
     public static void tick(ServerPlayer player,ItemStack wand){if(!continuous(wand)){player.stopUsingItem();return;}cast(player,wand);}
