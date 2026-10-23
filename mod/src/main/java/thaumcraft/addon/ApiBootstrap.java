@@ -38,6 +38,7 @@ public final class ApiBootstrap {
             public List<String> completed(net.minecraft.server.MinecraftServer server,UUID author){return KnowledgeService.completedResearch(server,author);}
             public boolean complete(net.minecraft.server.level.ServerPlayer recipient,String key){return KnowledgeService.completeSharedResearch(recipient,key);}
         });
+        EssentiaItemApi.install(new NativeEssentiaItems());
         AspectApi.install(new AspectApi.Access(){
             public ItemStack wispEssence(Aspect aspect){return WispEssenceItem.of(aspect);}
             public Map<String,Integer> aspects(net.minecraft.world.level.Level level,ItemStack stack){if(level instanceof net.minecraft.server.level.ServerLevel server)return ThaumcraftData.aspects(server.getServer(),stack);var data=thaumcraft.network.ClientKnowledge.aspects();return StackAspectRules.aspects(stack,data.objects().getOrDefault(net.minecraft.core.registries.BuiltInRegistries.ITEM.getKey(stack.getItem()).toString(),Map.of()),data.modifiers());}
