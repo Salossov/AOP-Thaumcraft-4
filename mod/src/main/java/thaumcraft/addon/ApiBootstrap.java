@@ -25,6 +25,7 @@ public final class ApiBootstrap {
             public boolean modernWeaponCooldown(){return thaumcraft.config.ThaumcraftConfig.MODERN_WEAPON_COOLDOWN.get();}
         });
         thaumcraft.api.entities.MobBehaviorApi.install(new thaumcraft.entities.MobBehaviorAccess());
+        thaumcraft.api.entities.GolemEquipmentApi.install(new NativeGolemEquipment());
         thaumcraft.api.entities.EffectDurationApi.install((effect,ticks)->((thaumcraft.mixin.MobEffectDurationAccessor)(Object)effect).thaumcraft$setDuration(ticks));
         thaumcraft.api.entities.PlayerMotionApi.install((player,velocity)->{
             player.setDeltaMovement(velocity);player.fallDistance=0;player.hurtMarked=true;
