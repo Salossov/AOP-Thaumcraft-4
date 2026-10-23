@@ -15,6 +15,7 @@ public final class WandApi {
         ItemStack focus(ItemStack stack);void focus(ItemStack wand,ItemStack focus);void parts(ItemStack stack,WandParts parts);
         Kind kind(ItemStack stack);WandParts parts(ItemStack stack);
         Map<Aspect,Integer> quoteCrafting(ItemStack stack,Player player,Map<Aspect,Integer> wholeVis);
+        default float craftingModifier(ItemStack stack,Player player,Aspect aspect){throw new UnsupportedOperationException("Crafting modifier unavailable");}
     }
     private static Access access;
     public static void install(Access value){if(access!=null)throw new IllegalStateException("Wand API already installed");access=Objects.requireNonNull(value);}
@@ -31,6 +32,17 @@ public final class WandApi {
     public static WandParts parts(ItemStack wand){return access.parts(wand);}
     /** Whole-vis crafting costs, without focus frugal. A null player means no equipment discounts. */
     public static Map<Aspect,Integer> quoteCrafting(ItemStack wand,Player player,Map<Aspect,Integer> wholeVis){return Map.copyOf(access.quoteCrafting(wand,player,wholeVis));}
+    /** Exact native crafting coefficient before integer rounding; null player omits worn equipment.
+     * Read-only. The adapter receives a copy, including during wand-kind validation.
+     */
+    public static float craftingModifier(ItemStack wand,Player player,Aspect aspect){
+        Objects.requireNonNull(wand);Objects.requireNonNull(aspect);
+        if(access==null)throw new IllegalStateException("Wand API not installed");
+        var copy=wand.copy();if(!aspect.isPrimal()||copy.isEmpty()||access.kind(copy)==Kind.NONE)throw new IllegalArgumentException("Casting wand and primal aspect required");
+        float modifier=access.craftingModifier(copy,player,aspect);
+        if(!Float.isFinite(modifier)||modifier<=0)throw new IllegalStateException("Invalid crafting modifier");
+        return modifier;
+    }
     /** Server-thread debit for unattended crafting; the level supplies context when player is null. */
     public static boolean consumeCrafting(net.minecraft.world.level.Level level,ItemStack wand,Player player,Map<Aspect,Integer> wholeVis,boolean commit){
         Objects.requireNonNull(level);if(player!=null&&player.level()!=level)throw new IllegalArgumentException("Player in another level");

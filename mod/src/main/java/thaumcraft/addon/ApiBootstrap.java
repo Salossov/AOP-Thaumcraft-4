@@ -54,10 +54,11 @@ public final class ApiBootstrap {
         WandApi.install(new WandApi.Access(){
             public WandApi.Kind kind(ItemStack s){return s.getItem() instanceof thaumcraft.items.CastingWandItem wand?WandApi.Kind.valueOf(wand.kind().name()):WandApi.Kind.NONE;}
             public WandParts parts(ItemStack s){return thaumcraft.items.WandMaterials.parts(s);}
+            public float craftingModifier(ItemStack s,net.minecraft.world.entity.player.Player p,Aspect a){return thaumcraft.items.WandMaterials.modifier(s,a,p==null?0:WandVis.discount(p,a));}
             public Map<Aspect,Integer> quoteCrafting(ItemStack s,net.minecraft.world.entity.player.Player p,Map<Aspect,Integer> wholeVis){
                 var result=new java.util.LinkedHashMap<Aspect,Integer>();wholeVis.forEach((a,n)->{
                     if(a==null||!a.isPrimal()||n<=0)throw new IllegalArgumentException("Invalid crafting vis cost");
-                    result.put(a,(int)(Math.multiplyExact(n,100)*thaumcraft.items.WandMaterials.modifier(s,a,p==null?0:WandVis.discount(p,a))));
+                    result.put(a,(int)(Math.multiplyExact(n,100)*craftingModifier(s,p,a)));
                 });return result;
             }
             public int get(ItemStack s,Aspect a){return WandVis.get(s,a);}public int capacity(ItemStack s){return WandVis.capacity(s);}public void set(ItemStack s,Aspect a,int n){WandVis.set(s,a,n);}
