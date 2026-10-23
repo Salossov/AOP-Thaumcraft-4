@@ -26,6 +26,7 @@ public final class ApiBootstrap {
         });
         thaumcraft.api.entities.MobBehaviorApi.install(new thaumcraft.entities.MobBehaviorAccess());
         thaumcraft.api.entities.GolemEquipmentApi.install(new NativeGolemEquipment());
+        thaumcraft.api.crafting.InfusionMatrixApi.install(new NativeInfusionMatrixProbe());
         thaumcraft.api.entities.EffectDurationApi.install((effect,ticks)->((thaumcraft.mixin.MobEffectDurationAccessor)(Object)effect).thaumcraft$setDuration(ticks));
         thaumcraft.api.entities.PlayerMotionApi.install((player,velocity)->{
             player.setDeltaMovement(velocity);player.fallDistance=0;player.hurtMarked=true;
