@@ -57,10 +57,10 @@ public final class TransportBlockEntity extends EssentiaBlockEntity {
         };
     }
     @Override public boolean canInputFrom(Direction d) {
-        return isConnectable(d) && kind != ProductionBlock.Kind.ALEMBIC && (kind != ProductionBlock.Kind.CENTRIFUGE || d == Direction.DOWN);
+        return !hasPendingEssentia() && isConnectable(d) && kind != ProductionBlock.Kind.ALEMBIC && (kind != ProductionBlock.Kind.CENTRIFUGE || d == Direction.DOWN);
     }
     @Override public boolean canOutputTo(Direction d) {
-        return isConnectable(d) && kind != ProductionBlock.Kind.CRYSTALLIZER && (kind != ProductionBlock.Kind.CENTRIFUGE || d == Direction.UP);
+        return !hasPendingEssentia() && isConnectable(d) && kind != ProductionBlock.Kind.CRYSTALLIZER && (kind != ProductionBlock.Kind.CENTRIFUGE || d == Direction.UP);
     }
     @Override public boolean renderExtendedTube() { return tube() || kind == ProductionBlock.Kind.BUFFER; }
     @Override public Aspect getSuctionType(Direction d) {
@@ -68,6 +68,7 @@ public final class TransportBlockEntity extends EssentiaBlockEntity {
     }
     @Override public void setSuction(Aspect a, int n) { if (kind != ProductionBlock.Kind.VALVE || allowFlow) suction = new EssentiaSuction.Demand(a, n); }
     @Override public int getSuctionAmount(Direction d) {
+        if (hasPendingEssentia()) return 0;
         if (tube()) return suction.amount();
         return switch (kind) {
             case JAR -> store.amount() < 64 ? (store.filter() == null ? 32 : 64) : 0;
@@ -90,6 +91,7 @@ public final class TransportBlockEntity extends EssentiaBlockEntity {
         return store.first();
     }
     @Override public int addToContainer(Aspect a, int n) {
+        if (hasPendingEssentia()) return n;
         if (a == null || n <= 0) return n;
         if (kind == ProductionBlock.Kind.CENTRIFUGE) {
             if (a.isPrimal() || processing != null || store.amount() > 0) return n;
@@ -99,6 +101,7 @@ public final class TransportBlockEntity extends EssentiaBlockEntity {
         return super.addToContainer(a, n);
     }
     @Override public boolean doesContainerAccept(Aspect a) {
+        if (hasPendingEssentia()) return false;
         return kind == ProductionBlock.Kind.CENTRIFUGE ? a != null && !a.isPrimal() && processing == null && store.amount() == 0 : store.doesContainerAccept(a);
     }
     @Override public int addEssentia(Aspect a, int n, Direction d) {
@@ -112,11 +115,13 @@ public final class TransportBlockEntity extends EssentiaBlockEntity {
     }
     public boolean labelable() { return kind == ProductionBlock.Kind.JAR || kind == ProductionBlock.Kind.VOID_JAR || kind == ProductionBlock.Kind.ALEMBIC || kind == ProductionBlock.Kind.FILTER; }
     public boolean applyLabel(Aspect a) {
+        if (hasPendingEssentia()) return false;
         if (!labelable() || a == null || (store.first() != null && store.first() != a)) return false;
         store.filter(a); sync(); return true;
     }
     public void removeLabel() { if (labelable() && store.filter() != null) { store.filter(null); sync(); } }
     public void wandClick(Direction d, boolean sneak) {
+        if (hasPendingEssentia()) return;
         if (labelable() && sneak) { store.clear(); sync(); return; }
         if (kind == ProductionBlock.Kind.VALVE) { allowFlow = !allowFlow; sync(); return; }
         if (!tube() && kind != ProductionBlock.Kind.BUFFER) return;
@@ -133,7 +138,7 @@ public final class TransportBlockEntity extends EssentiaBlockEntity {
         var aspect=store.first();if(aspect==null||store.amount()<=0)return false;
         var data=held.getOrDefault(DataComponents.BLOCK_ENTITY_DATA,CustomData.EMPTY).copyTag();var contents=data.getCompound("Essentia");int stored=0;
         for(var key:contents.getAllKeys()){int amount=contents.getInt(key);if(amount>0&&!key.equals(aspect.getTag()))return false;stored+=Math.max(0,amount);}
-        var filter=Aspect.getAspect(data.getString("AspectFilter"));if(filter!=null&&filter!=aspect)return false;
+        String filterId=data.getString("AspectFilter");var filter=Aspect.getAspect(filterId);if(!filterId.isEmpty()&&filter!=aspect)return false;
         boolean voidJar=held.is(R3Content.VOID_JAR.get().asItem());int moved=voidJar?store.amount():Math.min(store.amount(),64-stored);if(moved<=0)return false;if(level.isClientSide)return true;
         var filled=held.copyWithCount(1);contents.putInt(aspect.getTag(),Math.min(64,stored+moved));data.put("Essentia",contents);data.putString("id","thaumcraft:essentia_transport");filled.set(DataComponents.BLOCK_ENTITY_DATA,CustomData.of(data));
         if(!takeFromContainer(aspect,moved))return false;
@@ -154,6 +159,7 @@ public final class TransportBlockEntity extends EssentiaBlockEntity {
     private boolean powered() { return level != null && level.hasNeighborSignal(worldPosition); }
     private int bellows() { return R3Content.bellows(level, worldPosition); }
     @Override public void serverTick() {
+        if (hasPendingEssentia()) return;
         if (!started) { count = level.random.nextInt(10); started = true; }
         if (count % 5 == 0) TubeBlock.updateConnections(this);
         if (venting > 0) { venting--; setChanged(); }
