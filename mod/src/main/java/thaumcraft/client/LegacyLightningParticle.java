@@ -26,8 +26,12 @@ final class LegacyLightningParticle extends Particle {
     }
     static void node(Vec3 from,Vec3 to){
         var mc=Minecraft.getInstance();if(mc.level==null||from.distanceToSqr(to)<1e-12)return;
+        node(from,to,mc.level.random.nextLong());
+    }
+    static void node(Vec3 from,Vec3 to,long seed){
+        var mc=Minecraft.getInstance();if(mc.level==null||from.distanceToSqr(to)<1e-12)return;
         // ClientProxy.nodeBolt: duration 10, fractal multiplier 4, speed 5, type 0.
-        var graph=new LegacyLightningGraph(from,to,mc.level.random.nextLong(),10,4,5);
+        var graph=new LegacyLightningGraph(from,to,seed,10,4,5);
         mc.particleEngine.add(new LegacyLightningParticle(from,to,graph,.03f,false,true));mc.particleEngine.add(new LegacyLightningParticle(from,to,graph,.03f,true,true));
     }
     private LegacyLightningParticle(Vec3 from,Vec3 to,LegacyLightningGraph graph,float width,boolean small,boolean node){

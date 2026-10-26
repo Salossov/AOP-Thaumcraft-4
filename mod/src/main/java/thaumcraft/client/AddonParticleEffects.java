@@ -23,6 +23,7 @@ public final class AddonParticleEffects {
         if(level!=null&&level.dimension().location().equals(packet.dimension()))ParticleApi.emit(level,packet.effect());
     }
     @SubscribeEvent public static void setup(FMLClientSetupEvent event) {
+        event.enqueueWork(()->ParticleApi.installNodeBolts(AddonParticleEffects::nodeBolt));
         event.enqueueWork(()->ParticleApi.installSmokeSpirals((source,effect)->{
             var minecraft=Minecraft.getInstance();var displayed=minecraft.level;
             if(displayed==null||source!=displayed)return;
@@ -63,6 +64,23 @@ public final class AddonParticleEffects {
                 });
             });
         }));
+    }
+    private static void nodeBolt(net.minecraft.world.level.Level source,ParticleApi.NodeBolt effect){
+        var minecraft=Minecraft.getInstance();
+        if(source.isClientSide()&&!minecraft.isSameThread()){
+            minecraft.execute(()->nodeBolt(source,effect));return;
+        }
+        var displayed=minecraft.level;if(displayed==null)return;
+        var integrated=source.isClientSide()?null:minecraft.getSingleplayerServer();
+        if(source.isClientSide()?source!=displayed:integrated==null||integrated!=source.getServer()
+                ||!source.dimension().equals(displayed.dimension()))return;
+        if(integrated!=null&&!integrated.isSameThread())throw new IllegalStateException("Server thread required");
+        long seed=source.random.nextLong();
+        minecraft.execute(()->{
+            if(minecraft.level!=displayed||integrated!=null&&minecraft.getSingleplayerServer()!=integrated)return;
+            LegacyLightningParticle.node(new Vec3(effect.fromX(),effect.fromY(),effect.fromZ()),
+                    new Vec3(effect.toX(),effect.toY(),effect.toZ()),seed);
+        });
     }
     private static final class ProxyParticle extends TextureSheetParticle {
         private final ParticleApi.Effect effect;

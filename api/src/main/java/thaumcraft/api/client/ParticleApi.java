@@ -12,6 +12,26 @@ import net.minecraft.world.level.Level;
  * methods instead deliver effects to nearby clients of a server level.
  */
 public final class ParticleApi {
+    /** Original six-float ClientProxy.nodeBolt; a fresh fractal bolt, not a wand beam. */
+    public record NodeBolt(float fromX,float fromY,float fromZ,float toX,float toY,float toZ){
+        public NodeBolt{
+            if(!Float.isFinite(fromX)||!Float.isFinite(fromY)||!Float.isFinite(fromZ)
+                    ||!Float.isFinite(toX)||!Float.isFinite(toY)||!Float.isFinite(toZ))
+                throw new IllegalArgumentException("Invalid node bolt coordinates");
+        }
+    }
+    private static volatile BiConsumer<Level,NodeBolt> nodeBoltAccess=(level,effect)->{};
+    public static void installNodeBolts(BiConsumer<Level,NodeBolt> implementation){
+        nodeBoltAccess=Objects.requireNonNull(implementation);
+    }
+    /**
+     * Local legacy proxy semantics. Dedicated servers do nothing and consume no RNG.
+     * The client adapter owns scheduling, world checks and the one source-world seed.
+     * This method never sends packets or loads chunks.
+     */
+    public static void nodeBolt(Level level,float fromX,float fromY,float fromZ,float toX,float toY,float toZ){
+        nodeBoltAccess.accept(Objects.requireNonNull(level),new NodeBolt(fromX,fromY,fromZ,toX,toY,toZ));
+    }
     public enum Kind { SPARKLE, WISP, BURST, SHADOW_SPARKLE }
     public record Effect(Kind kind, double x, double y, double z, float size, int palette,
                          float red, float green, float blue, boolean shrink, boolean noClip, float gravity) {
