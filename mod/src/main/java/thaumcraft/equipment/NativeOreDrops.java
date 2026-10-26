@@ -26,18 +26,25 @@ public final class NativeOreDrops {
         if(!tool.is(R3Equipment.TOOLS.get("elemental_pickaxe").get())&&!tool.is(R3Equipment.TOOLS.get("primal_crusher").get())&&!dowsing)return;
         float chance=.2f+tool.getEnchantmentLevel(registry.getOrThrow(Enchantments.FORTUNE))*.075f;
         if(event.getLevel().random.nextFloat()>=chance)return;
+        for(var drop:event.getDrops()){
+            var result=specialMiningResult(event.getLevel(),event.getState(),drop.getItem());
+            if(!result.isEmpty())drop.setItem(result.copyWithCount(drop.getItem().getCount()));
+        }
+    }
+    /** Shared native policy; no random roll, loot mutation or count multiplication. */
+    public static ItemStack specialMiningResult(net.minecraft.world.level.Level level,net.minecraft.world.level.block.state.BlockState state,ItemStack originalDrop){
+        if(originalDrop.isEmpty())return ItemStack.EMPTY;
         for(var entry:R3Equipment.NATIVE_CLUSTERS.entrySet()){
             var metal=entry.getKey();if(metal.equals("copper")&&!ThaumcraftConfig.ENABLE_COPPER_CONTENT.get())continue;
             var ore=TagKey.create(Registries.BLOCK,ResourceLocation.parse("c:ores/"+metal));
-            if(!event.getState().is(ore)&&!(metal.equals("cinnabar")&&event.getState().is(thaumcraft.registry.R3Content.CINNABAR_ORE.get())))continue;
-            for(var drop:event.getDrops()){
-                var stack=drop.getItem();var raw=TagKey.create(Registries.ITEM,ResourceLocation.parse("c:raw_materials/"+metal));
-                boolean isOre=stack.is(TagKey.create(Registries.ITEM,ResourceLocation.parse("c:ores/"+metal)));
-                boolean isRaw=stack.is(raw);
-                if(isOre||isRaw&&ThaumcraftConfig.RAW_ORE_PURIFICATION.get()||metal.equals("cinnabar")&&stack.is(thaumcraft.registry.R3Content.QUICKSILVER.get()))drop.setItem(new ItemStack(entry.getValue().get(),stack.getCount()));
-            }
+            if(!state.is(ore)&&!(metal.equals("cinnabar")&&state.is(thaumcraft.registry.R3Content.CINNABAR_ORE.get())))continue;
+            var raw=TagKey.create(Registries.ITEM,ResourceLocation.parse("c:raw_materials/"+metal));
+            boolean isOre=originalDrop.is(TagKey.create(Registries.ITEM,ResourceLocation.parse("c:ores/"+metal)));
+            boolean isRaw=originalDrop.is(raw);
+            if(isOre||isRaw&&ThaumcraftConfig.RAW_ORE_PURIFICATION.get()||metal.equals("cinnabar")&&originalDrop.is(thaumcraft.registry.R3Content.QUICKSILVER.get()))return new ItemStack(entry.getValue().get());
             break;
         }
+        return ItemStack.EMPTY;
     }
     private NativeOreDrops(){}
 }

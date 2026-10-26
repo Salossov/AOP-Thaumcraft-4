@@ -7,6 +7,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import thaumcraft.api.aspects.Aspect;
@@ -36,13 +39,20 @@ public final class VisNetHandler {
         if (ref != null && ref.get() == node) { network.nodes.remove(node.getBlockPos()); network.dirty = true; }
     }
     public static void invalidate(Level level) { var network = NETWORKS.get(level); if (network != null) network.dirty = true; }
+    static BlockEntity loadedBlockEntity(Level level, BlockPos pos) {
+        var chunk = level instanceof ServerLevel server
+                ? server.getChunkSource().getChunkNow(pos.getX() >> 4, pos.getZ() >> 4)
+                : level.getChunkSource().getChunk(pos.getX() >> 4, pos.getZ() >> 4, ChunkStatus.FULL, false);
+        return chunk instanceof LevelChunk loaded
+                ? loaded.getBlockEntity(pos, LevelChunk.EntityCreationType.CHECK) : null;
+    }
     public static List<TileVisNode> loadedNodes(Level level) {
         var network = NETWORKS.get(level);
         if (network == null) return List.of();
         var result = new ArrayList<TileVisNode>();
         network.nodes.entrySet().removeIf(entry -> {
             var node = entry.getValue().get();
-            boolean stale = node == null || node.isRemoved() || !level.hasChunkAt(entry.getKey()) || level.getBlockEntity(entry.getKey()) != node;
+            boolean stale = node == null || node.isRemoved() || loadedBlockEntity(level, entry.getKey()) != node;
             if (!stale) result.add(node);
             return stale;
         });

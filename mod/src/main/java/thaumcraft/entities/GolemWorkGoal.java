@@ -55,6 +55,7 @@ public final class GolemWorkGoal extends Goal {
         case 0->"no_fill_job";case 1,10->"no_transfer_job";case 2->"no_pickup_job";
         case 3->"no_crop";case 4,9->"no_enemy";case 5->"no_fluid_job";
         case 6->"source_empty";case 7->"no_log";case 8->"no_use_job";case 11->"no_water";default->"no_core";};}
+    private ItemStack watched=ItemStack.EMPTY;private int watchedRevision;
     private Runnable job;private BooleanSupplier valid;
     private int timeout,delay,searchAfter,miningTime,miningMax;
     private BlockPos mining;
@@ -123,7 +124,7 @@ public final class GolemWorkGoal extends Goal {
     private List<GolemMarker> marked(){return golem.markers().stream().filter(m->m.dimension().equals(world().dimension())&&world().hasChunkAt(m.pos())&&golem.home().distSqr(m.pos())<=golem.range()*golem.range()).sorted(Comparator.comparingDouble(m->golem.distanceToSqr(m.pos().getCenter()))).toList();}
     private IItemHandler items(BlockPos pos,Direction face){return world().hasChunkAt(pos)?world().getCapability(Capabilities.ItemHandler.BLOCK,pos,face):null;}
     private IItemHandler homeItems(){return items(golem.source(),golem.homeFace());}
-    private boolean matches(ItemStack stack,ItemStack filter){
+    boolean matches(ItemStack stack,ItemStack filter){
         if(stack.isEmpty()||filter.isEmpty())return false;
         boolean same=ItemStack.isSameItem(stack,filter);
         if(!same&&golem.toggle(5)){var shared=stack.getTags().filter(tag->tag.location().getNamespace().equals("c")).toList();same=filter.getTags().anyMatch(shared::contains);}
@@ -137,17 +138,75 @@ public final class GolemWorkGoal extends Goal {
     private static ItemStack insert(IItemHandler handler,ItemStack stack,boolean simulate){return handler==null?stack:ItemHandlerHelper.insertItemStacked(handler,stack,simulate);}
     private boolean sortingAllows(IItemHandler handler,ItemStack stack){if(golem.core()!=10)return true;if(handler==null)return false;for(int slot=0;slot<handler.getSlots();slot++)if(matches(stack,handler.getStackInSlot(slot)))return true;return false;}
     private boolean depositHome(){var carried=golem.carried();if(carried.isEmpty())return false;var handler=homeItems();if(handler==null||insert(handler,carried,true).getCount()==carried.getCount())return false;debugTask="deposit_items";return assign(golem.source(),()->{golem.carried(insert(homeItems(),golem.carried(),false));golem.action(10);},()->!golem.carried().isEmpty()&&homeItems()!=null&&insert(homeItems(),golem.carried(),true).getCount()<golem.carried().getCount());}
-    private boolean take(IItemHandler handler,BlockPos pos,Direction face,Predicate<ItemStack> allow){if(handler==null)return false;for(int slot=0;slot<handler.getSlots();slot++){var stack=handler.getStackInSlot(slot);if(!stack.isEmpty()&&allow.test(stack)&&!handler.extractItem(slot,takeCount(stack),true).isEmpty()){int index=slot;debugTask="take_items";return assign(pos,()->{var actual=items(pos,face);if(actual!=null&&golem.carried().isEmpty()){var preview=actual.extractItem(index,takeCount(actual.getStackInSlot(index)),true);if(allow.test(preview)){golem.carried(actual.extractItem(index,takeCount(preview),false));golem.action(10);}}},()->{var current=items(pos,face);if(current==null||index>=current.getSlots()||!golem.carried().isEmpty())return false;var preview=current.extractItem(index,takeCount(current.getStackInSlot(index)),true);return !preview.isEmpty()&&allow.test(preview);});}}return false;}
+    private boolean take(IItemHandler handler,BlockPos pos,Direction face,Predicate<ItemStack> allow){if(handler==null)return false;for(int slot=0;slot<handler.getSlots();slot++){var stack=handler.getStackInSlot(slot);if(!stack.isEmpty()&&allow.test(stack)&&!handler.extractItem(slot,takeCount(stack),true).isEmpty()){int index=slot;watchFillItem(stack);debugTask="take_items";return assign(pos,()->{var actual=items(pos,face);if(actual!=null&&golem.carried().isEmpty()){var preview=actual.extractItem(index,takeCount(actual.getStackInSlot(index)),true);if(allow.test(preview)){golem.carried(actual.extractItem(index,takeCount(preview),false));golem.action(10);}}},()->{var current=items(pos,face);if(current==null||index>=current.getSlots()||!golem.carried().isEmpty())return false;var preview=current.extractItem(index,takeCount(current.getStackInSlot(index)),true);return !preview.isEmpty()&&allow.test(preview);});}}return false;}
     private int takeCount(ItemStack stack){if(golem.core()!=0||golem.toggle(0)||golem.filters.isEmpty())return golem.carryLimit();var home=homeItems();if(home==null)return 0;int missing=0;for(int i=0;i<golem.filterSlots();i++){var filter=golem.filters.getItem(i);if(!matches(stack,filter))continue;int count=0;for(int slot=0;slot<home.getSlots();slot++)if(matches(home.getStackInSlot(slot),filter))count+=home.getStackInSlot(slot).getCount();missing=Math.max(missing,filter.getCount()-count);}return Math.clamp(missing,0,golem.carryLimit());}
-    private boolean fill(){if(!golem.carried().isEmpty())return depositHome();var home=homeItems();if(home==null)return returnHome();Predicate<ItemStack> needed=stack->{if(!filtered(stack))return false;for(int slot=0;slot<golem.filterSlots();slot++){var filter=golem.filters.getItem(slot);if(!matches(stack,filter))continue;int count=0;for(int i=0;i<home.getSlots();i++)if(matches(home.getStackInSlot(i),filter))count+=home.getStackInSlot(i).getCount();if(count<filter.getCount())return true;}return golem.filters.isEmpty()&&insert(home,stack.copyWithCount(1),true).isEmpty();};for(var marker:marked())if(take(items(marker.pos(),marker.face()),marker.pos(),marker.face(),stack->needed.test(stack)&&markerMatches(marker,stack)))return true;return returnHome();}
+    /** The real Fill request selected by native planning, or its last missing filter. */
+    List<ItemStack> externalItemDemand(){
+        var missing=missingItemRequests();
+        if(watchedRevision==golem.workRevision()&&!watched.isEmpty()){
+            for(var request:missing)if(ItemStack.isSameItemSameComponents(request,watched))return List.of(request.copy());
+        }
+        return missing;
+    }
+    private List<ItemStack> missingItemRequests(){
+        if(golem.core()!=0||!golem.carried().isEmpty())return List.of();
+        var result=new ArrayList<ItemStack>();var home=homeItems();
+        for(int slot=0;slot<golem.filterSlots();slot++){
+            var filter=golem.filters.getItem(slot);if(filter.isEmpty())continue;
+            if(golem.toggle(0)){result.add(filter.copy());continue;}
+            if(home==null)continue;
+            long count=0;for(int i=0;i<home.getSlots();i++)if(matches(home.getStackInSlot(i),filter))count+=home.getStackInSlot(i).getCount();
+            long required=0;
+            for(int i=0;i<golem.filterSlots();i++){
+                var other=golem.filters.getItem(i);if(other.isEmpty())continue;
+                boolean same=golem.upgrade(5)>0?ItemStack.isSameItem(other,filter)&&other.getDamageValue()==filter.getDamageValue():ItemStack.isSameItemSameComponents(other,filter);
+                if(!same&&golem.upgrade(5)>0){var tags=other.getTags().filter(tag->tag.location().getNamespace().equals("c")).toList();same=filter.getTags().anyMatch(tags::contains);}
+                if(same)required+=other.getCount();
+            }
+            if(count>=required)continue;
+            int amount=(int)Math.max(0,filter.getCount()-count);
+            // Wireless rates, not the material's physical carry limit, bound the network extraction.
+            if(amount>0)result.add(filter.copyWithCount(amount));
+        }
+        return List.copyOf(result);
+    }
+    private void watchFillItem(ItemStack stack){
+        if(golem.core()!=0)return;
+        for(var request:missingItemRequests())if(matches(stack,request)){
+            watched=request.copy();watchedRevision=golem.workRevision();return;
+        }
+    }
+    /** Modern equivalent of GolemHelper.getMissingLiquids: fillable, filtered fluid types. */
+    List<FluidStack> externalFluidDemand(){
+        if(golem.core()!=5||!world().hasChunkAt(golem.source()))return List.of();
+        var home=world().getCapability(Capabilities.FluidHandler.BLOCK,golem.source(),golem.homeFace());
+        if(home==null)return List.of();
+        var result=new ArrayList<FluidStack>();var candidates=new ArrayList<FluidStack>();
+        boolean hasFilter=false;
+        for(int slot=0;slot<golem.filterSlots();slot++){
+            var filter=golem.filters.getItem(slot);if(filter.isEmpty())continue;hasFilter=true;
+            var tank=filter.copyWithCount(1).getCapability(Capabilities.FluidHandler.ITEM);if(tank==null)continue;
+            for(int i=0;i<tank.getTanks();i++){var value=tank.getFluidInTank(i);if(!value.isEmpty())candidates.add(value.copyWithAmount(1000));}
+        }
+        if(!hasFilter)for(var type:net.minecraft.core.registries.BuiltInRegistries.FLUID){
+            if(type.defaultFluidState().isSource())candidates.add(new FluidStack(type,1000));
+        }
+        for(var candidate:candidates){
+            if(!golem.fluid.isEmpty()&&!FluidStack.isSameFluidSameComponents(golem.fluid,candidate))continue;
+            if(result.stream().anyMatch(value->FluidStack.isSameFluidSameComponents(value,candidate)))continue;
+            if(home.fill(candidate,IFluidHandler.FluidAction.SIMULATE)>0)result.add(candidate.copy());
+        }
+        return List.copyOf(result);
+    }
+    private boolean fill(){if(!golem.carried().isEmpty())return depositHome();watched=ItemStack.EMPTY;watchedRevision=golem.workRevision();var home=homeItems();if(home==null)return returnHome();Predicate<ItemStack> needed=stack->{if(!filtered(stack))return false;for(int slot=0;slot<golem.filterSlots();slot++){var filter=golem.filters.getItem(slot);if(!matches(stack,filter))continue;int count=0;for(int i=0;i<home.getSlots();i++)if(matches(home.getStackInSlot(i),filter))count+=home.getStackInSlot(i).getCount();if(count<filter.getCount())return true;}return golem.filters.isEmpty()&&insert(home,stack.copyWithCount(1),true).isEmpty();};for(var marker:marked())if(take(items(marker.pos(),marker.face()),marker.pos(),marker.face(),stack->needed.test(stack)&&markerMatches(marker,stack)))return true;return returnHome();}
     private boolean empty(){
         if(!golem.carried().isEmpty()){for(var marker:marked()){var carried=golem.carried();if(!markerMatches(marker,carried))continue;var handler=items(marker.pos(),marker.face());if(handler!=null&&sortingAllows(handler,carried)&&insert(handler,carried,true).getCount()<carried.getCount())return assign(marker.pos(),()->{golem.carried(insert(items(marker.pos(),marker.face()),golem.carried(),false));golem.action(10);},()->{var actual=items(marker.pos(),marker.face());var carriedNow=golem.carried();return !carriedNow.isEmpty()&&markerMatches(marker,carriedNow)&&sortingAllows(actual,carriedNow)&&insert(actual,carriedNow,true).getCount()<carriedNow.getCount();});if(handler==null&&world().isEmptyBlock(marker.pos().relative(marker.face())))return assign(marker.pos(),()->drop(marker),()->world().isEmptyBlock(marker.pos().relative(marker.face())));}return depositHome();}
         var handler=homeItems();return take(handler,golem.source(),golem.homeFace(),stack->{if(golem.core()!=10&&!filtered(stack))return false;for(var marker:marked()){if(!markerMatches(marker,stack))continue;var destination=items(marker.pos(),marker.face());if(destination!=null&&sortingAllows(destination,stack)&&insert(destination,stack.copyWithCount(1),true).isEmpty())return true;if(golem.core()!=10&&destination==null&&world().isEmptyBlock(marker.pos().relative(marker.face())))return true;}return false;})||returnHome();
     }
     private void drop(GolemMarker marker){var pos=marker.pos().getCenter().add(Vec3.atLowerCornerOf(marker.face().getNormal()).scale(.6));var entity=new ItemEntity(world(),pos.x,pos.y,pos.z,golem.carried().copy());entity.setDefaultPickUpDelay();if(world().addFreshEntity(entity))golem.carried(ItemStack.EMPTY);}
-    private boolean gather(){if(!golem.carried().isEmpty())return depositHome();if(homeItems()==null)return returnHome();
+    private boolean gather(){if(!golem.carried().isEmpty())return depositHome();if(homeItems()==null&&!golem.externalItemDestination())return returnHome();
         // Original AIItemPickup: take the item when the golem's filter is empty OR the filter still wants it.
-        var entities=world().getEntitiesOfClass(ItemEntity.class,new AABB(golem.home()).inflate(golem.range()),entity->!entity.hasPickUpDelay()&&filtered(entity.getItem()));entities.sort(Comparator.comparingDouble(golem::distanceToSqr));if(!entities.isEmpty()){pickup=entities.getFirst();target=pickup.position();job=()->{if(pickup!=null&&pickup.isAlive()&&!pickup.hasPickUpDelay()&&golem.carried().isEmpty()){var stack=pickup.getItem().copy();int amount=Math.min(golem.carryLimit(),stack.getCount());golem.carried(stack.copyWithCount(amount));stack.shrink(amount);if(stack.isEmpty())pickup.discard();else pickup.setItem(stack);golem.action(10);}};valid=()->pickup!=null&&pickup.isAlive()&&!pickup.hasPickUpDelay()&&filtered(pickup.getItem())&&golem.carried().isEmpty()&&homeItems()!=null;return true;}return returnHome();}
+        var entities=world().getEntitiesOfClass(ItemEntity.class,new AABB(golem.home()).inflate(golem.range()),entity->!entity.hasPickUpDelay()&&filtered(entity.getItem()));entities.sort(Comparator.comparingDouble(golem::distanceToSqr));if(!entities.isEmpty()){pickup=entities.getFirst();target=pickup.position();job=()->{if(pickup!=null&&pickup.isAlive()&&!pickup.hasPickUpDelay()&&golem.carried().isEmpty()){var stack=pickup.getItem().copy();int amount=Math.min(golem.carryLimit(),stack.getCount());golem.carried(stack.copyWithCount(amount));stack.shrink(amount);if(stack.isEmpty())pickup.discard();else pickup.setItem(stack);golem.action(10);}};valid=()->pickup!=null&&pickup.isAlive()&&!pickup.hasPickUpDelay()&&filtered(pickup.getItem())&&golem.carried().isEmpty()&&(homeItems()!=null||golem.externalItemDestination());return true;}return returnHome();}
     private boolean acceptsEssentia(GolemMarker marker){
         if(golem.essentia==null||golem.essentiaAmount<=0||!world().hasChunkAt(marker.pos()))return false;
         var transport=world().getCapability(EssentiaCapabilities.TRANSPORT,marker.pos(),marker.face());var container=world().getCapability(EssentiaCapabilities.CONTAINER,marker.pos(),null);

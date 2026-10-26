@@ -10,7 +10,11 @@ import thaumcraft.items.WispEssenceItem;
 
 /** TC4 stack bonuses, restricted to reviewed IDs and data-defined old potion/enchantment rules. */
 public final class StackAspectRules {
-    public record Settings(Map<String,Map<String,Integer>> items,Map<String,Map<String,Integer>> potionBases,Map<String,Map<String,Integer>> effects,Map<String,Map<String,Integer>> enchantments){public static final Settings EMPTY=new Settings(Map.of(),Map.of(),Map.of(),Map.of());public Settings{items=Map.copyOf(items);potionBases=Map.copyOf(potionBases);effects=Map.copyOf(effects);enchantments=Map.copyOf(enchantments);}}
+    public record Settings(Map<String,Map<String,Integer>> items,Map<String,Map<String,Integer>> potionBases,Map<String,Map<String,Integer>> effects,Map<String,Map<String,Integer>> enchantments,Map<String,Map<String,Integer>> additions){
+        public static final Settings EMPTY=new Settings(Map.of(),Map.of(),Map.of(),Map.of());
+        public Settings(Map<String,Map<String,Integer>> items,Map<String,Map<String,Integer>> potionBases,Map<String,Map<String,Integer>> effects,Map<String,Map<String,Integer>> enchantments){this(items,potionBases,effects,enchantments,Map.of());}
+        public Settings{items=Map.copyOf(items);potionBases=Map.copyOf(potionBases);effects=Map.copyOf(effects);enchantments=Map.copyOf(enchantments);additions=Map.copyOf(additions);}
+    }
     public static Map<String,Integer> aspects(ItemStack stack,Map<String,Integer> base,Settings settings){
         String id=BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();var values=new LinkedHashMap<>(base);minimum(values,settings.items.getOrDefault(id,Map.of()),1);
         if(stack.getItem() instanceof thaumcraft.api.aspects.IObjectAspectItem item)minimum(values,item.objectAspects(stack),1);
@@ -20,7 +24,10 @@ public final class StackAspectRules {
         if(stack.getItem() instanceof thaumcraft.api.aspects.IEssentiaContainerItem container){var contained=container.getAspects(stack);if(contained!=null)for(var aspect:contained.getAspects())if(aspect!=null&&contained.getAmount(aspect)>0)values.merge(aspect.getTag(),contained.getAmount(aspect),Integer::sum);}
         var enchants=stack.getOrDefault(stack.is(Items.ENCHANTED_BOOK)?DataComponents.STORED_ENCHANTMENTS:DataComponents.ENCHANTMENTS,ItemEnchantments.EMPTY);int magic=0;
         if(!values.isEmpty()||settings.items.containsKey(id))for(var entry:enchants.entrySet()){var key=entry.getKey().unwrapKey().map(resource->resource.location().toString()).orElse("");var rule=settings.enchantments.get(key);if(rule!=null){minimum(values,rule,entry.getIntValue());magic+=entry.getIntValue();}}
-        if(magic>0)values.merge("praecantatio",magic,Math::max);values.entrySet().removeIf(e->e.getValue()<=0);return Map.copyOf(values);
+        if(magic>0)values.merge("praecantatio",magic,Math::max);values.entrySet().removeIf(e->e.getValue()<=0);return AspectAdditions.apply(values,settings.additions.getOrDefault(id,Map.of()));
+    }
+    public static Map<String,Integer> blockAspects(net.minecraft.world.level.block.state.BlockState state,Map<String,Integer> base,Settings settings){
+        var item=state.getBlock().asItem();return item==Items.AIR?base:AspectAdditions.apply(base,settings.additions.getOrDefault(BuiltInRegistries.ITEM.getKey(item).toString(),Map.of()));
     }
     private static void minimum(Map<String,Integer> values,Map<String,Integer> minimum,int level){minimum.forEach((tag,amount)->values.merge(tag,amount*level,Math::max));}
     private static String potionKey(PotionContents contents){return contents.potion().flatMap(holder->holder.unwrapKey()).map(key->key.location().toString()).orElse("minecraft:water");}

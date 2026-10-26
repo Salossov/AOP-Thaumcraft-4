@@ -49,8 +49,12 @@ public final class Aspect {
     public String texture() { return icon==null?"thaumcraft:textures/aspects/" + tag + ".png":icon; }
     public String translationKey(){return translationKey;}
     public static synchronized Aspect registerCompound(net.minecraft.resources.ResourceLocation id,int color,net.minecraft.resources.ResourceLocation icon,String translationKey,Aspect first,Aspect second){
+        return registerCompound(id,color,icon,translationKey,1,first,second);
+    }
+    /** Explicit source blend factor; the original overload retains blend 1. */
+    public static synchronized Aspect registerCompound(net.minecraft.resources.ResourceLocation id,int color,net.minecraft.resources.ResourceLocation icon,String translationKey,int blend,Aspect first,Aspect second){
         Aspects.initialize();if(id.getNamespace().equals("thaumcraft"))throw new IllegalArgumentException("Addon aspects need their own namespace");
-        var aspect=register(id.toString(),color,"5",1,Objects.requireNonNull(first),Objects.requireNonNull(second));aspect.icon=Objects.requireNonNull(icon).toString();aspect.translationKey=Objects.requireNonNull(translationKey);return aspect;
+        var aspect=register(id.toString(),color,"5",blend,Objects.requireNonNull(first),Objects.requireNonNull(second));aspect.icon=Objects.requireNonNull(icon).toString();aspect.translationKey=Objects.requireNonNull(translationKey);return aspect;
     }
     public boolean connects(Aspect other) { return other != null && (components.contains(other) || other.components.contains(this)); }
     public static Aspect combine(Aspect first, Aspect second) {

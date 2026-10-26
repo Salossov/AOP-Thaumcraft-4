@@ -40,7 +40,7 @@ public final class WandApi {
         if(access==null)throw new IllegalStateException("Wand API not installed");
         var copy=wand.copy();if(!aspect.isPrimal()||copy.isEmpty()||access.kind(copy)==Kind.NONE)throw new IllegalArgumentException("Casting wand and primal aspect required");
         float modifier=access.craftingModifier(copy,player,aspect);
-        if(!Float.isFinite(modifier)||modifier<=0)throw new IllegalStateException("Invalid crafting modifier");
+        if(!Float.isFinite(modifier)||modifier<0)throw new IllegalStateException("Invalid crafting modifier");
         return modifier;
     }
     /** Server-thread debit for unattended crafting; the level supplies context when player is null. */

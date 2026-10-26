@@ -35,6 +35,6 @@ public final class WandMaterials {
     public static WandCap cap(ItemStack stack){return WandCap.caps.getOrDefault(parts(stack).cap(),WandCap.caps.get("iron"));}
     public static boolean staff(ItemStack stack){return stack.getItem() instanceof CastingWandItem wand&&wand.kind()==CastingWandItem.Kind.STAFF;}
     public static boolean sceptre(ItemStack stack){return stack.getItem() instanceof CastingWandItem wand&&wand.kind()==CastingWandItem.Kind.SCEPTRE;}
-    public static float modifier(ItemStack stack,Aspect aspect,float discount){var cap=cap(stack);return Math.max(.1f,(cap==null?1.1f:cap.modifier(aspect))-discount-(sceptre(stack)?.1f:0));}
+    public static float modifier(ItemStack stack,Aspect aspect,float discount){var cap=cap(stack);if(cap!=null&&cap.modifier(aspect)<=0.0f)return 0.0f;return Math.max(.1f,(cap==null?1.1f:cap.modifier(aspect))-discount-(sceptre(stack)?.1f:0));}
     private WandMaterials(){}
 }

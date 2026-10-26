@@ -111,7 +111,7 @@ final class VirtualVisSources {
             var world = level.get(); var block = owner.get();
             return !closed && world != null && block != null && !block.isRemoved() && block.getLevel() == world
                     && block.getBlockPos().equals(key.ownerPosition) && world.hasChunkAt(key.ownerPosition)
-                    && world.hasChunkAt(position) && world.getBlockEntity(key.ownerPosition) == block && source.valid();
+                    && world.hasChunkAt(position) && VisNetHandler.loadedBlockEntity(world, key.ownerPosition) == block && source.valid();
         }
         @Override public void refresh() {
             var world = level.get();

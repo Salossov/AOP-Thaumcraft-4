@@ -7,7 +7,9 @@ import thaumcraft.api.knowledge.PlayerKnowledge;
 
 /** The core installs the server adapter; client snapshots are replaced atomically on synchronization. */
 public final class ResearchApi {
+    public enum WarpKind { PERMANENT, STICKY, TEMPORARY }
     public interface Access {PlayerKnowledge knowledge(ServerPlayer player);void sync(ServerPlayer player);boolean exists(ServerPlayer player,String research);boolean grant(ServerPlayer player,String research);
+        default void addWarp(ServerPlayer player,WarpKind kind,int amount){throw new UnsupportedOperationException("Warp mutation is unavailable");}
         default boolean completeAspect(ServerPlayer player,thaumcraft.api.aspects.Aspect aspect,short amount){throw new UnsupportedOperationException("Aspect completion is unavailable");}
         default Map<String,ResearchDefinition> definitions(ServerPlayer player){throw new UnsupportedOperationException("Server research catalog is unavailable");}
     }
@@ -36,6 +38,18 @@ public final class ResearchApi {
     public static boolean completeAspect(ServerPlayer player,thaumcraft.api.aspects.Aspect aspect,short amount){
         if(!player.server.isSameThread())throw new IllegalStateException("Server thread required");
         return aspect!=null&&access.completeAspect(player,aspect,amount);
+    }
+    /** Signed server-side delta; native Wuss Mode, persistence, counter and notices apply. */
+    public static void addWarp(ServerPlayer player,WarpKind kind,int amount){
+        Objects.requireNonNull(player);Objects.requireNonNull(kind);
+        if(!player.server.isSameThread())throw new IllegalStateException("Server thread required");
+        if(amount==0)return;
+        var state=knowledge(player);
+        int current=switch(kind){case PERMANENT->state.permanentWarp();case STICKY->state.stickyWarp();case TEMPORARY->state.temporaryWarp();};
+        long next=Math.max(0L,(long)current+amount);
+        if(next>Integer.MAX_VALUE||(long)state.permanentWarp()+state.stickyWarp()+state.temporaryWarp()-current+next>Integer.MAX_VALUE)
+            throw new IllegalArgumentException("Warp total exceeds supported range");
+        access.addWarp(player,kind,amount);
     }
     public static Map<String,ResearchDefinition> definitions(){return snapshot.definitions;}
     /** Effective server catalog, including dynamic requirements and config/tag filtering. */

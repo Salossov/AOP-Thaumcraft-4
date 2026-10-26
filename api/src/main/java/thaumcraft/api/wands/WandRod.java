@@ -15,6 +15,7 @@ public class WandRod {
     private final int capacity, craftCost;
     private final Supplier<ItemStack> item;
     private final java.util.function.BiConsumer<ItemStack, Player> onUpdate;
+    private boolean glowing;
     public WandRod(String tag, int capacity, Supplier<ItemStack> item, int craftCost,
                    java.util.function.BiConsumer<ItemStack, Player> onUpdate) {
         if (capacity < 1 || craftCost < 1 || rods.containsKey(tag)) throw new IllegalArgumentException("Invalid or duplicate rod " + tag);
@@ -26,6 +27,8 @@ public class WandRod {
     public int getCraftCost(){return craftCost;}
     public ItemStack getItem(){return item.get();}
     public String getResearch(){return research==null?"ROD_"+tag:research;}
+    public boolean isGlowing(){return glowing;}
+    public void setGlowing(boolean value){glowing=value;}
     public ResourceLocation getTexture(){return tag.contains(":")?ResourceLocation.fromNamespaceAndPath(ResourceLocation.parse(tag).getNamespace(),"textures/models/wand_rod_"+ResourceLocation.parse(tag).getPath().replace("_staff","")+".png"):ResourceLocation.fromNamespaceAndPath("thaumcraft", "textures/models/wand_rod_"+tag.replace("_staff", "")+".png");}
     public void onUpdate(ItemStack stack,Player player){if(onUpdate!=null)onUpdate.accept(stack,player);}
 }

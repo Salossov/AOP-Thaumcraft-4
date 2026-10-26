@@ -40,7 +40,7 @@ public abstract class TileVisNode extends BlockEntity {
                     && level.hasChunkAt(node.getBlockPos()) ? node : null;
         }
         return parent != null && level != null && level.hasChunkAt(parent)
-                && level.getBlockEntity(parent) instanceof TileVisNode node && !node.isRemoved() ? node : null;
+                && VisNetHandler.loadedBlockEntity(level, parent) instanceof TileVisNode node && !node.isRemoved() ? node : null;
     }
     public TileVisNode getRootSource() {
         var node = this;

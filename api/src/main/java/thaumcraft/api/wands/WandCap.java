@@ -13,7 +13,7 @@ public final class WandCap {
     private final Set<Aspect> special;
     private final Supplier<ItemStack> item;
     public WandCap(String tag,float modifier,Set<Aspect> special,float specialModifier,Supplier<ItemStack> item,int cost){
-        if(cost<1||modifier<.1f||caps.containsKey(tag))throw new IllegalArgumentException("Invalid or duplicate cap "+tag);
+        if(cost<1||modifier<0.0f||caps.containsKey(tag))throw new IllegalArgumentException("Invalid or duplicate cap "+tag);
         this.tag=tag;this.modifier=modifier;this.special=Set.copyOf(special);this.specialModifier=specialModifier;this.item=item;craftCost=cost;caps.put(tag,this);
     }
     public WandCap(net.minecraft.resources.ResourceLocation id,String research,float modifier,Set<Aspect> special,float specialModifier,Supplier<ItemStack> item,int cost){this(id.toString(),modifier,special,specialModifier,item,cost);this.research=java.util.Objects.requireNonNull(research);}
