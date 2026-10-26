@@ -25,10 +25,14 @@ public final class RecipeCatalogBridge {
     }
     private static Collection<RecipeDisplay> collect(Level level){
         var result=new ArrayList<RecipeDisplay>();var manager=level.getRecipeManager();
+        // Legacy maps also contain aliases for addon parts. Only canonical entries
+        // create display variants; aliases must not duplicate the same recipe ID.
+        var rods=WandRod.rods.entrySet().stream().filter(e->e.getKey().equals(e.getValue().getTag())).map(Map.Entry::getValue).toList();
+        var caps=WandCap.caps.entrySet().stream().filter(e->e.getKey().equals(e.getValue().getTag())).map(Map.Entry::getValue).toList();
         for(var holder:manager.getAllRecipesFor(R2Recipes.ARCANE_TYPE.get())){
             var r=holder.value();
             if(r instanceof ArcaneWandRecipe){
-                for(var rod:WandRod.rods.values())for(var cap:WandCap.caps.values())for(boolean sceptre:new boolean[]{false,true}){
+                for(var rod:rods)for(var cap:caps)for(boolean sceptre:new boolean[]{false,true}){
                     var items=new ArrayList<ItemStack>(Collections.nCopies(9,ItemStack.EMPTY));items.set(4,rod.getItem());items.set(6,cap.getItem());
                     if(sceptre){items.set(1,cap.getItem());items.set(2,new ItemStack(R3Equipment.PRIMAL_CHARM.get()));items.set(7,cap.getItem());}else items.set(2,cap.getItem());
                     var input=CraftingInput.of(3,3,items);if(!r.matches(input,level))continue;
