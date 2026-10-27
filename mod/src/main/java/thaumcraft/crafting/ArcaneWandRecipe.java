@@ -21,15 +21,23 @@ public final class ArcaneWandRecipe implements IArcaneRecipe {
     private record Parts(WandRod rod,WandCap cap){}
     private Parts find(CraftingInput input){
         if(input.width()!=3||input.height()!=3)return null;
-        int[] occupied=sceptre?new int[]{1,2,4,6,7}:new int[]{2,4,6};
+        int[] occupied=sceptre?new int[]{1,2,4,5,6}:new int[]{2,4,6};
         for(int i=0;i<9;i++){boolean needed=false;for(int cell:occupied)if(cell==i)needed=true;if(input.getItem(i).isEmpty()==needed)return null;}
-        var capStack=input.getItem(sceptre?1:2);if(!ItemStack.isSameItemSameComponents(capStack,input.getItem(6)))return null;
-        if(sceptre&&(!ItemStack.isSameItemSameComponents(capStack,input.getItem(7))||!input.getItem(2).is(R3Equipment.PRIMAL_CHARM.get())))return null;
-        WandCap cap=WandCap.caps.values().stream().filter(c->ItemStack.isSameItemSameComponents(capStack,c.getItem())).findFirst().orElse(null);
-        WandRod rod=WandRod.rods.values().stream().filter(r->ItemStack.isSameItemSameComponents(input.getItem(4),r.getItem())).findFirst().orElse(null);
-        if(cap==null||rod==null||sceptre&&rod instanceof StaffRod||!sceptre&&cap.getTag().equals("iron")&&rod.getTag().equals("wood"))return null;
+        var capStack=input.getItem(sceptre?1:2);if(!samePart(capStack,input.getItem(6)))return null;
+        if(sceptre&&(!samePart(capStack,input.getItem(5))||!input.getItem(2).is(R3Equipment.PRIMAL_CHARM.get())))return null;
+        WandCap cap=WandCap.caps.values().stream().filter(c->samePart(capStack,c.getItem())).findFirst().orElse(null);
+        WandRod rod=WandRod.rods.values().stream().filter(r->samePart(input.getItem(4),r.getItem())).findFirst().orElse(null);
+        if(cap==null||rod==null||!sceptre&&cap.getTag().equals("iron")&&rod.getTag().equals("wood"))return null;
         if(cap.getTag().equals("copper")&&!thaumcraft.config.ThaumcraftConfig.ENABLE_COPPER_CONTENT.get())return null;
         return new Parts(rod,cap);
+    }
+    private static boolean samePart(ItemStack actual,ItemStack expected){
+        // Anvil names did not change TC4 part identity; retain semantic components
+        // (including addon variants) rather than treating every stack of an item alike.
+        var left=actual.copy();var right=expected.copy();
+        left.remove(net.minecraft.core.component.DataComponents.CUSTOM_NAME);
+        right.remove(net.minecraft.core.component.DataComponents.CUSTOM_NAME);
+        return ItemStack.isSameItemSameComponents(left,right);
     }
     public boolean matches(CraftingInput input,Level level){return find(input)!=null;}
     public boolean mayCraft(net.minecraft.world.entity.player.Player player,CraftingInput input){
