@@ -22,6 +22,21 @@ import thaumcraft.items.*;
 import thaumcraft.registry.R3Equipment;
 
 public final class ThaumicGolem extends PathfinderMob implements MenuProvider, thaumcraft.api.entities.IControllableGolem {
+    @Override protected net.minecraft.world.entity.ai.navigation.PathNavigation createNavigation(Level level){
+        return new net.minecraft.world.entity.ai.navigation.GroundPathNavigation(this,level){
+            @Override public void tick(){
+                if(inactive()||isNoAi()){
+                    // stop() alone retains vanilla's delayed recomputation and target.
+                    // A later tick must not resurrect a path while the fetter is powered.
+                    stop();hasDelayedRecomputation=false;
+                    getMoveControl().setWantedPosition(getX(),getY(),getZ(),0);
+                    setSpeed(0);
+                    return;
+                }
+                super.tick();
+            }
+        };
+    }
     private static final EntityDataAccessor<Integer> UPGRADE_MASK=SynchedEntityData.defineId(ThaumicGolem.class,EntityDataSerializers.INT);
     private static final EntityDataAccessor<Integer> MATERIAL=SynchedEntityData.defineId(ThaumicGolem.class,EntityDataSerializers.INT),CORE=SynchedEntityData.defineId(ThaumicGolem.class,EntityDataSerializers.INT),ACTION=SynchedEntityData.defineId(ThaumicGolem.class,EntityDataSerializers.INT);
     private static final EntityDataAccessor<Boolean> VISUAL_INACTIVE=SynchedEntityData.defineId(ThaumicGolem.class,EntityDataSerializers.BOOLEAN);
