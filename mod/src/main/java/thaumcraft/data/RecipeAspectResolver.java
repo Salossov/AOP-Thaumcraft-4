@@ -46,7 +46,7 @@ final class RecipeAspectResolver {
             result.entrySet().removeIf(e->e.getValue()<=0);result.replaceAll((tag,amount)->Math.min(64,amount));
             // A failed branch through a cycle may acquire a seed from another recipe later.
             // Cache genuine empty results, but do not permanently cache that temporary failure.
-            if(!result.isEmpty()||!incomplete.contains(id))values.put(id,Map.copyOf(result));
+            if(!result.isEmpty()||!incomplete.contains(id))values.put(id,Collections.unmodifiableMap(new LinkedHashMap<>(result)));
             return AspectAdditions.apply(result,additions.getOrDefault(id,Map.of()));
         } finally {path.remove(id);}
     }
@@ -67,7 +67,7 @@ final class RecipeAspectResolver {
             if(recipe instanceof thaumcraft.api.crafting.InfusionRecipe ritual)ritual.aspects().forEach((tag,amount)->sum.merge(tag,(int)(Math.sqrt(amount)/count),Math::addExact));
             if(recipe instanceof thaumcraft.api.crafting.IArcaneRecipe magic)magic.vis().forEach((tag,amount)->sum.merge(tag,(int)(Math.sqrt(amount)/count),Math::addExact));
             sum.entrySet().removeIf(e->e.getValue()<=0);long size=sum.values().stream().mapToLong(Integer::longValue).sum();
-            if(size>0&&size<smallest){best=Map.copyOf(sum);smallest=size;}
+            if(size>0&&size<smallest){best=Collections.unmodifiableMap(new LinkedHashMap<>(sum));smallest=size;}
         }
         return best;
     }

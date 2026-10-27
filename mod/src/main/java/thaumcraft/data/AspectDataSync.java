@@ -11,9 +11,17 @@ public final class AspectDataSync {
     private static CompoundTag variantMap(Map<String,List<ThaumcraftData.EntityVariant>> values){var encoded=new CompoundTag();values.forEach((id,rules)->{var list=new ListTag();for(var rule:rules){var tag=new CompoundTag();tag.putString("field",rule.field());tag.putString("value",rule.value());tag.put("aspects",quantities(rule.aspects()));list.add(tag);}encoded.put(id,list);});return encoded;}
     private static Map<String,List<ThaumcraftData.EntityVariant>> readVariants(CompoundTag source){var result=new LinkedHashMap<String,List<ThaumcraftData.EntityVariant>>();for(var id:source.getAllKeys()){var rules=new ArrayList<ThaumcraftData.EntityVariant>();for(var value:source.getList(id,Tag.TAG_COMPOUND)){var tag=(CompoundTag)value;var wrapper=new CompoundTag();wrapper.put("changes",tag.getCompound("aspects"));rules.add(new ThaumcraftData.EntityVariant(tag.getString("field"),tag.getString("value"),readChanges(wrapper).get("changes")));}result.put(id,List.copyOf(rules));}return Map.copyOf(result);}
     private static CompoundTag maps(Map<String,Map<String,Integer>> values){var tag=new CompoundTag();values.forEach((key,amounts)->tag.put(key,quantities(amounts)));return tag;}
-    private static CompoundTag quantities(Map<String,Integer> values){var tag=new CompoundTag();values.forEach(tag::putInt);return tag;}
+    private static CompoundTag quantities(Map<String,Integer> values){var tag=new CompoundTag();values.forEach(tag::putInt);var order=new ListTag();values.keySet().forEach(key->order.add(StringTag.valueOf(key)));tag.put("$order",order);return tag;}
     private static Map<String,Map<String,Integer>> readMaps(CompoundTag tag){var result=new LinkedHashMap<String,Map<String,Integer>>();for(var key:tag.getAllKeys())result.put(key,readQuantities(tag.getCompound(key)));return Map.copyOf(result);}
-    private static Map<String,Integer> readQuantities(CompoundTag tag){var result=new LinkedHashMap<String,Integer>();for(var key:tag.getAllKeys())if(tag.getInt(key)>0)result.put(key,tag.getInt(key));return Map.copyOf(result);}
-    private static Map<String,Map<String,Integer>> readChanges(CompoundTag tag){var result=new LinkedHashMap<String,Map<String,Integer>>();for(var key:tag.getAllKeys()){var values=new LinkedHashMap<String,Integer>();var amounts=tag.getCompound(key);for(var aspect:amounts.getAllKeys())values.put(aspect,amounts.getInt(aspect));result.put(key,Map.copyOf(values));}return Map.copyOf(result);}
+    private static Map<String,Integer> readQuantities(CompoundTag tag){return readAmounts(tag,true);}
+    private static Map<String,Integer> readAmounts(CompoundTag tag,boolean positive){
+        var keys=new LinkedHashSet<String>();
+        for(var value:tag.getList("$order",Tag.TAG_STRING))keys.add(value.getAsString());
+        keys.addAll(tag.getAllKeys());
+        var result=new LinkedHashMap<String,Integer>();
+        for(var key:keys)if(tag.contains(key,Tag.TAG_INT)&&(!positive||tag.getInt(key)>0))result.put(key,tag.getInt(key));
+        return Collections.unmodifiableMap(result);
+    }
+    private static Map<String,Map<String,Integer>> readChanges(CompoundTag tag){var result=new LinkedHashMap<String,Map<String,Integer>>();for(var key:tag.getAllKeys())result.put(key,readAmounts(tag.getCompound(key),false));return Map.copyOf(result);}
     private AspectDataSync(){}
 }

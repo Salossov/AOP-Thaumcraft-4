@@ -10,7 +10,7 @@ public final class AspectAdditions {
     public record Rule(String selector, Map<String,Integer> amounts, List<String> requiredTags) {
         public Rule {
             ResourceLocation.parse(selector.startsWith("#") ? selector.substring(1) : selector);
-            amounts = Map.copyOf(amounts); requiredTags = List.copyOf(requiredTags);
+            amounts = Collections.unmodifiableMap(new LinkedHashMap<>(amounts)); requiredTags = List.copyOf(requiredTags);
             requiredTags.forEach(ResourceLocation::parse);
         }
     }
@@ -26,16 +26,16 @@ public final class AspectAdditions {
             }
         }
         var frozen = new LinkedHashMap<String,Map<String,Integer>>();
-        result.forEach((id, amounts) -> frozen.put(id, Map.copyOf(amounts)));
+        result.forEach((id, amounts) -> frozen.put(id, Collections.unmodifiableMap(new LinkedHashMap<>(amounts))));
         return Map.copyOf(frozen);
     }
 
     public static Map<String,Integer> apply(Map<String,Integer> base, Map<String,Integer> changes) {
-        if (changes.isEmpty()) return Map.copyOf(base);
+        if (changes.isEmpty()) return Collections.unmodifiableMap(new LinkedHashMap<>(base));
         var result = new LinkedHashMap<>(base);
         changes.forEach((aspect, amount) -> result.merge(aspect, amount, Math::addExact));
         result.entrySet().removeIf(entry -> entry.getValue() <= 0);
-        return Map.copyOf(result);
+        return Collections.unmodifiableMap(result);
     }
 
     private AspectAdditions() { }

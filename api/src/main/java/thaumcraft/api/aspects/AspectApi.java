@@ -14,9 +14,14 @@ public final class AspectApi {
         default Map<String,Integer> aspects(net.minecraft.world.entity.Entity entity){return Map.of();}}
     private static Access access;
     public static void install(Access value){if(access!=null)throw new IllegalStateException("Aspect API already installed");access=Objects.requireNonNull(value);}
-    public static Map<String,Integer> aspects(Level level,ItemStack stack){return Map.copyOf(access.aspects(level,stack.copy()));}
-    public static Map<String,Integer> aspects(Level level,net.minecraft.world.level.block.state.BlockState state){return Map.copyOf(access.aspects(level,state));}
-    public static Map<String,Integer> aspects(net.minecraft.world.entity.Entity entity){return Map.copyOf(access.aspects(entity));}
+    public static Map<String,Integer> aspects(Level level,ItemStack stack){return ordered(access.aspects(level,stack.copy()));}
+    public static Map<String,Integer> aspects(Level level,net.minecraft.world.level.block.state.BlockState state){return ordered(access.aspects(level,state));}
+    public static Map<String,Integer> aspects(net.minecraft.world.entity.Entity entity){return ordered(access.aspects(entity));}
+    private static Map<String,Integer> ordered(Map<String,Integer> values){
+        var copy=new LinkedHashMap<String,Integer>();
+        values.forEach((key,value)->copy.put(Objects.requireNonNull(key),Objects.requireNonNull(value)));
+        return Collections.unmodifiableMap(copy);
+    }
     /** Filled phials, jars, crystals and essence pieces; copies safe for viewer indexing. */
     public static List<ItemStack> variants(){return access==null?List.of():access.variants().stream().map(ItemStack::copy).toList();}
     /** Fresh native two-unit wisp essence, using the core's real stack components. */
