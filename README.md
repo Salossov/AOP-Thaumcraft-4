@@ -2,7 +2,9 @@
 
 **Fully ported version with first addon (Thaumic Tinkerer) will be available in coming days. Stay tuned!**
 
-<img src="mod/src/main/resources/logo.png" alt="AOP: Thaumcraft 4" width="128" height="128">
+<img src="assets/branding/aop-logo.png" alt="AOP: Thaumcraft 4" width="256" height="256">
+
+**AOP projects:** [Thaumcraft 4](https://github.com/Salossov/AOP-Thaumcraft-4) · [Compact](https://github.com/Salossov/AOPTC4-Compact) · [Thaumic Tinkerer](https://github.com/Salossov/AOPTC4-Thaumic-Tinkerer) · [AOP UI](https://github.com/Salossov/AOP-UI) · [Forbidden Magic](https://github.com/Salossov/AOPTC4-Forbidden-Magic) · [Thaumic Energistics](https://github.com/Salossov/AOPTC4-Thaumic-Energistics)
 
 Unofficial port of **Thaumcraft 4.2.3.5** to **Minecraft 1.21.1**, built on NeoForge and Java 21.
 
