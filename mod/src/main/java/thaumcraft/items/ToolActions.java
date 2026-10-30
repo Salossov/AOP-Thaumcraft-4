@@ -18,7 +18,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import thaumcraft.network.OreScanPayload;
 
 /** Uses the normal server harvesting path, including protection and loot hooks. */
-@net.neoforged.fml.common.EventBusSubscriber(modid="thaumcraft")
+@net.neoforged.fml.common.EventBusSubscriber(modid="thaumcraft_aop")
 public final class ToolActions {
     private static final Set<UUID> BREAKING = new HashSet<>(), SWEEPING = new HashSet<>();
 

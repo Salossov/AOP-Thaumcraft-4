@@ -15,7 +15,7 @@ import thaumcraft.entities.ThaumicGolem;
 import thaumcraft.network.GolemDebugPayload;
 
 /** World-space diagnostics. Cyan = real route, gold dashes = intended work target. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class GolemDebugOverlay {
     private static List<GolemDebugPayload.Entry> entries=List.of();
     private static ClientLevel level;

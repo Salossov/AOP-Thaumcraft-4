@@ -41,7 +41,7 @@ class SuiteTests(unittest.TestCase):
 
     def jars(self, stage, version, folder):
         prefix = {'ui': 'aopui-1.21.1-', 'core': 'thaumcraft-1.21.1-',
-                  'tinkerer': 'ThaumicTinkerer-1.21.1-', 'compact': 'aoptc4-compact-'}[stage]
+                  'tinkerer': 'ThaumicTinkerer-1.21.1-', 'compact': 'aoptc4-compact-', 'the': 'thaumicenergistics-1.21.1-'}[stage]
         names = [prefix + version + '.jar', prefix + version + '-sources.jar']
         if stage == 'core':
             names += ['thaumcraft-api-' + version + '.jar', 'thaumcraft-api-' + version + '-sources.jar']
@@ -77,6 +77,37 @@ class SuiteTests(unittest.TestCase):
             suite.prepare()
         source.assert_called_once_with(Path('.'))
         self.assertEqual(set(suite.read_json(suite.CACHE / 'lock.json')['sources']), {'ui'})
+
+    def test_release_dependency_preserves_existing_port_version(self):
+        def source(root):
+            version = '2.5.164-port.1' if root == Path('.dependencies/tinkerer') else '1.0.0'
+            return dict(version=version, revision='a' * 40, content=str(root))
+        with patch.dict(os.environ, SUITE_TARGET='compact', RELEASE_REQUESTED='true'), patch(
+                'suite.source_identity', side_effect=source), patch('suite.subprocess.run') as java:
+            java.return_value.stdout, java.return_value.stderr = '', 'Java 21'
+            suite.prepare()
+        self.assertEqual(suite.read_json(suite.CACHE / 'lock.json')['sources']['tinkerer']['version'], '2.5.164-port.1')
+
+    def test_nightly_accepts_configured_port_version(self):
+        with patch.dict(os.environ, SUITE_TARGET='tinkerer', RELEASE_REQUESTED='false'), patch(
+                'suite.source_identity', return_value=dict(version='2.5.164-port.1', revision='a' * 40, content='source')), patch(
+                'suite.subprocess.run') as java:
+            java.return_value.stdout, java.return_value.stderr = '', 'Java 21'
+            suite.prepare()
+
+    def test_ordinary_release_still_rejects_port_target(self):
+        with patch.dict(os.environ, SUITE_TARGET='tinkerer', RELEASE_REQUESTED='true'), patch(
+                'suite.source_identity', return_value=dict(version='2.5.164-port.1', revision='a' * 40, content='source')):
+            with self.assertRaisesRegex(ValueError, 'ordinary release'):
+                suite.prepare()
+
+    def test_act_cannot_publish(self):
+        self.seed_all()
+        with patch.dict(os.environ, ACT='true'), patch('suite.api') as api, patch('suite.release.publish') as publish:
+            with self.assertRaisesRegex(ValueError, 'Local act runs cannot publish'):
+                suite.publish()
+        api.assert_not_called()
+        publish.assert_not_called()
 
     def test_standalone_roots_and_dependency_order(self):
         for target in suite.STAGES:
@@ -174,6 +205,31 @@ class SuiteTests(unittest.TestCase):
         suite.write_json(suite.CACHE / 'lock.json', lock)
         self.assertNotEqual(first, suite.plan('ui')['release-key'])
 
+    def test_the_source_dependency_invalidates_compact_only(self):
+        self.seed_all()
+        compact = suite.plan('compact')['release-key']
+        ui = suite.plan('ui')['release-key']
+        lock = suite.read_json(suite.CACHE / 'lock.json')
+        lock['sources']['the']['content'] = 'updated'
+        suite.write_json(suite.CACHE / 'lock.json', lock)
+        self.seed('the', 'release')
+        self.assertNotEqual(compact, suite.plan('compact')['release-key'])
+        self.assertEqual(ui, suite.plan('ui')['release-key'])
+
+    def test_corrupt_the_prevents_compact_plan(self):
+        self.seed_all()
+        manifest = suite.verified('the')
+        name = next(iter(manifest['artifacts']))
+        (suite.CACHE / 'the/release' / name).write_bytes(b'changed')
+        with self.assertRaisesRegex(ValueError, 'checksum'):
+            suite.plan('compact')
+
+    def test_suite_does_not_publish_dependency_the(self):
+        self.seed_all()
+        with contextlib.redirect_stdout(io.StringIO()) as output:
+            suite.publish(dry_run=True)
+        self.assertNotIn('the', json.loads(output.getvalue()))
+
     def test_toolchain_changes_invalidate_cache(self):
         first = suite.plan('ui')['release-key']
         lock = suite.read_json(suite.CACHE / 'lock.json')
@@ -185,7 +241,7 @@ class SuiteTests(unittest.TestCase):
         suite.plan('ui')
         with patch('suite.api', return_value=None) as api:
             suite.fetch('ui')
-        api.assert_called_once_with('repos/Salossov/aop-ui/releases/tags/v1.0.0', missing_ok=True)
+        api.assert_called_once_with('repos/' + suite.REPOSITORIES['ui'] + '/releases/tags/v1.0.0', missing_ok=True)
 
     def test_published_release_import_requires_matching_manifest_and_checksums(self):
         manifest = self.seed('ui', 'release')
@@ -226,7 +282,7 @@ class SuiteTests(unittest.TestCase):
             suite.publish(dry_run=True)
         api.assert_not_called()
         plans = json.loads(output.getvalue())
-        self.assertEqual(set(plans), set(suite.STAGES))
+        self.assertEqual(set(plans), set(suite.PUBLIC_STAGES))
         self.assertTrue(all(not plan['prerelease'] for plan in plans.values()))
 
     def test_collection_verifies_all_artifacts_again(self):
@@ -234,7 +290,7 @@ class SuiteTests(unittest.TestCase):
         suite.collect()
         self.assertEqual(len(list(Path('dist/suite').glob('*.jar'))), 10)
         self.assertEqual(len(Path('dist/suite/SHA256SUMS.txt').read_text().splitlines()), 10)
-        self.assertEqual(set(suite.read_json(Path('dist/suite/manifest.json'))['stages']), set(suite.STAGES))
+        self.assertEqual(set(suite.read_json(Path('dist/suite/manifest.json'))['stages']), set(suite.PUBLIC_STAGES))
 
     def test_bad_metadata_is_rejected_even_with_matching_checksum(self):
         manifest = self.seed('ui', 'release')

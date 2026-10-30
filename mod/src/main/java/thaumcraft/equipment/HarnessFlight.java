@@ -13,7 +13,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import thaumcraft.items.*;
 
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class HarnessFlight {
     private static final Map<UUID,Boolean> LEASES=new HashMap<>();
     public static boolean equipped(ItemStack stack){return stack.getItem() instanceof ThaumicArmorItem armor&&armor.kind()==ThaumicArmorItem.Kind.HARNESS;}

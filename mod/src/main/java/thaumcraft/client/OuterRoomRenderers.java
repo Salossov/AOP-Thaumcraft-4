@@ -17,7 +17,7 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 import thaumcraft.blocks.*;
 import thaumcraft.registry.R5Content;
 
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class OuterRoomRenderers {
     @SubscribeEvent public static void manaPods(EntityRenderersEvent.RegisterRenderers event){event.registerBlockEntityRenderer(R5Content.MANA_POD_ENTITY.get(),ManaPodRenderer::new);}
     @SubscribeEvent public static void pechScreens(net.neoforged.neoforge.client.event.RegisterMenuScreensEvent event){event.register(R5Content.PECH_MENU.get(),PechScreen::new);}

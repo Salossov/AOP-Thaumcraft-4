@@ -14,7 +14,7 @@ import thaumcraft.production.ProductionBlock;
 import thaumcraft.registry.*;
 
 /** Inventory forms include the same visible details as their original TC4 renderers. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class LegacyDeviceItems {
     private static final class Renderer extends BlockEntityWithoutLevelRenderer {
         private TableDetailsRenderer details;

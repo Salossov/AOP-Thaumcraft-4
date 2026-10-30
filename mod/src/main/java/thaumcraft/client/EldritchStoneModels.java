@@ -18,7 +18,7 @@ import net.neoforged.neoforge.client.model.IQuadTransformer;
 import net.neoforged.neoforge.client.model.data.*;
 import thaumcraft.blocks.EldritchStoneTextures;
 
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class EldritchStoneModels {
     private static final ModelProperty<int[]> TILES=new ModelProperty<>();
     private static ModelResourceLocation tile(String kind,int index){return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("thaumcraft","block/eldritch_"+kind+"_"+(index+1)));}

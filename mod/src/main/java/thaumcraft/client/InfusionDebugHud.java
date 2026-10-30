@@ -13,7 +13,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import thaumcraft.network.InfusionDebugRequestPayload;
 import thaumcraft.production.InfusionMatrixBlockEntity;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class InfusionDebugHud {
     private static boolean enabled;
     private static BlockPos requested;

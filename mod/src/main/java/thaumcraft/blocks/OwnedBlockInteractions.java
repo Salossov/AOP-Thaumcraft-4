@@ -11,7 +11,7 @@ import net.neoforged.neoforge.event.level.BlockEvent;
 import thaumcraft.config.ThaumcraftConfig;
 import thaumcraft.registry.R4Content;
 
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class OwnedBlockInteractions {
     public static boolean protectedBlock(Block block){return block instanceof ArcaneDoorBlock||block instanceof WardedGlassBlock||block instanceof ArcanePressurePlateBlock;}
     public static BlockPos lower(net.minecraft.world.level.Level level,BlockPos pos){var state=level.getBlockState(pos);return state.getBlock() instanceof ArcaneDoorBlock&&state.getValue(DoorBlock.HALF)==DoubleBlockHalf.UPPER?pos.below():pos;}

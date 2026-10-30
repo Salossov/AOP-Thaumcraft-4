@@ -13,7 +13,7 @@ import thaumcraft.config.ThaumcraftClientConfig;
 import thaumcraft.items.*;
 
 /** TC4's 32px dial, rotated coloured gauges, focus-cost pip, change arrows, focus icon and cooldown. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class WandHud {
     private static final java.text.DecimalFormat COST=new java.text.DecimalFormat("0.##",java.text.DecimalFormatSymbols.getInstance(java.util.Locale.ROOT));
     private static final java.text.DecimalFormat SECONDS=new java.text.DecimalFormat("0.0");

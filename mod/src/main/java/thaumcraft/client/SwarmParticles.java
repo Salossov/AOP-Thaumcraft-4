@@ -22,7 +22,7 @@ import thaumcraft.entities.TaintSwarm;
 import thaumcraft.registry.R2Sounds;
 
 /** Original FXSwarm steering, eight animation frames and fifty-tick death fade. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class SwarmParticles {
     private static final Map<TaintSwarm,List<Swarm>> ACTIVE=new IdentityHashMap<>();
     private static final ResourceLocation TEXTURE=ResourceLocation.fromNamespaceAndPath("thaumcraft","textures/misc/particles.png");

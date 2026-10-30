@@ -10,7 +10,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.*;
 import thaumcraft.api.research.ResearchDefinition;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class ResearchCompletionOverlay {
     private static ResearchDefinition research;private static long started;
     public static void accept(String key){ResearchHighlights.research(key);research=thaumcraft.network.ClientKnowledge.definitions().get(key);started=System.nanoTime()/1000000;var player=Minecraft.getInstance().player;if(research!=null&&player!=null)player.playSound(thaumcraft.registry.R2Sounds.LEARN.get(),.8f,1);}

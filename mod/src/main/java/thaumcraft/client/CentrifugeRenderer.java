@@ -12,7 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.extensions.common.*;
 
 /** Original ModelCentrifuge boxes and UVs, shared by its world and inventory forms. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class CentrifugeRenderer {
     private final net.minecraft.client.model.geom.ModelPart model=OriginalDeviceGeometry.bake("centrifuge");
     void draw(PoseStack pose,MultiBufferSource buffers,int light,int overlay,float rotation){

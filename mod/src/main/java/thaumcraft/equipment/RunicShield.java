@@ -23,7 +23,7 @@ import thaumcraft.network.RunicShieldPayload;
 import thaumcraft.config.ThaumcraftConfig;
 
 /** Charges are transient, as in TC4; hardening belongs to the persistent item. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class RunicShield {
     private static final Map<UUID,State> STATES=new HashMap<>();
     private static final class State {

@@ -10,7 +10,7 @@ import thaumcraft.config.ThaumcraftClientConfig;
 import thaumcraft.config.ThaumcraftClientConfig.GuardianFogMode;
 import thaumcraft.network.ClientGuardianMist;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class GuardianFogEvents {
     @SubscribeEvent public static void tick(ClientTickEvent.Post event) {
         var minecraft=Minecraft.getInstance();if(minecraft.level==null){ClientGuardianMist.clear();return;}

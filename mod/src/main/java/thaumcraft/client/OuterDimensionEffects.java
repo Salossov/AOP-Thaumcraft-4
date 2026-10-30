@@ -8,7 +8,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class OuterDimensionEffects extends DimensionSpecialEffects {
     public OuterDimensionEffects(){super(Float.NaN,false,SkyType.NONE,false,false);}
     @Override public Vec3 getBrightnessDependentFogColor(Vec3 color,float daylight){return new Vec3(160/255.0*.15,128/255.0*.15,160/255.0*.15);}

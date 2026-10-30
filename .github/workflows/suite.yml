@@ -49,10 +49,11 @@ jobs:
       SUITE_CORE_VERSION: ${{ inputs.core_version || '' }}
       SUITE_TINKERER_VERSION: ${{ inputs.tinkerer_version || '' }}
       SUITE_COMPACT_VERSION: ${{ inputs.compact_version || '' }}
-      SUITE_CORE_REPOSITORY: ${{ github.repository || 'Salossov/aop-thaumcraft-4' }}
-      SUITE_UI_REPOSITORY: ${{ vars.AOPUI_REPOSITORY || 'Salossov/aop-ui' }}
-      SUITE_TINKERER_REPOSITORY: ${{ vars.TINKERER_REPOSITORY || 'Salossov/aoptc4-thaumic-tinkerer' }}
-      SUITE_COMPACT_REPOSITORY: ${{ vars.COMPACT_REPOSITORY || 'Salossov/aoptc4-compact' }}
+      SUITE_CORE_REPOSITORY: ${{ github.repository || 'Salossov/AOP-Thaumcraft-4' }}
+      SUITE_THE_REPOSITORY: ${{ vars.THAUMIC_ENERGISTICS_REPOSITORY || 'Salossov/AOPTC4-Thaumic-Energistics' }}
+      SUITE_UI_REPOSITORY: ${{ vars.AOPUI_REPOSITORY || 'Salossov/AOP-UI' }}
+      SUITE_TINKERER_REPOSITORY: ${{ vars.TINKERER_REPOSITORY || 'Salossov/AOPTC4-Thaumic-Tinkerer' }}
+      SUITE_COMPACT_REPOSITORY: ${{ vars.COMPACT_REPOSITORY || 'Salossov/AOPTC4-Compact' }}
     steps:
       - name: Check out TC4 and suite workflow
         uses: actions/checkout@v7
@@ -87,6 +88,16 @@ jobs:
           ref: ${{ vars.COMPACT_REF || 'main' }}
           token: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
           path: .dependencies/compact
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check out Thaumic Energistics
+        if: ${{ !env.ACT }}
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ vars.THAUMIC_ENERGISTICS_REPOSITORY || 'Salossov/AOPTC4-Thaumic-Energistics' }}
+          ref: ${{ vars.THAUMIC_ENERGISTICS_REF || 'main' }}
+          token: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
+          path: .dependencies/thaumicenergistics
           fetch-depth: 0
           persist-credentials: false
       - name: Check build and publication rules
@@ -210,6 +221,41 @@ jobs:
           path: ${{ steps.build_tinkerer.outputs.path }}
           key: ${{ steps.build_tinkerer.outputs.key }}
 
+      - name: Plan ThE artifact identity
+        id: plan_the
+        run: python3 .github/scripts/suite.py plan the
+      - name: Restore verified release ThE
+        id: cache_the_release
+        if: ${{ !env.ACT && !inputs.force_rebuild }}
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/mod-suite/the/release
+          key: ${{ steps.plan_the.outputs.release-key }}
+      - name: Restore verified nightly ThE
+        id: cache_the_nightly
+        if: ${{ !env.ACT && !inputs.force_rebuild && !inputs.release && steps.cache_the_release.outputs.cache-hit != 'true' }}
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/mod-suite/the/nightly
+          key: ${{ steps.plan_the.outputs.nightly-key }}
+      - name: Find matching published ThE
+        if: ${{ !env.ACT }}
+        env:
+          GH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
+        run: python3 .github/scripts/suite.py fetch the
+      - name: '4 - Build or reuse ThE'
+        id: build_the
+        env:
+          SUITE_RELEASE_CACHE_HIT: ${{ steps.cache_the_release.outputs.cache-hit }}
+          SUITE_NIGHTLY_CACHE_HIT: ${{ steps.cache_the_nightly.outputs.cache-hit }}
+        run: python3 .github/scripts/suite.py build the
+      - name: Save verified ThE
+        if: ${{ !env.ACT && steps.build_the.outputs.store == 'true' }}
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ steps.build_the.outputs.path }}
+          key: ${{ steps.build_the.outputs.key }}
+
       - name: Plan Compact artifact identity
         id: plan_compact
         run: python3 .github/scripts/suite.py plan compact
@@ -232,7 +278,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
         run: python3 .github/scripts/suite.py fetch compact
-      - name: '4 - Build or reuse Compact'
+      - name: '5 - Build or reuse Compact'
         id: build_compact
         env:
           SUITE_RELEASE_CACHE_HIT: ${{ steps.cache_compact_release.outputs.cache-hit }}

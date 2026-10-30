@@ -14,7 +14,7 @@ import net.neoforged.neoforge.event.level.NoteBlockEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import thaumcraft.registry.R4Content;
 
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class ArcaneEarBlockEntity extends BlockEntity implements thaumcraft.api.world.IArcaneEar {
     public static final NoteBlockInstrument[] INSTRUMENTS={NoteBlockInstrument.HARP,NoteBlockInstrument.BASEDRUM,NoteBlockInstrument.SNARE,NoteBlockInstrument.HAT,NoteBlockInstrument.BASS};
     private record Played(long sequence,long time,BlockPos position,int tone,int note){}

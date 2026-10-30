@@ -16,7 +16,7 @@ import thaumcraft.items.ThaumometerItem;
 import thaumcraft.registry.R2Content;
 
 /** Original 32-frame aspect rings, core strips, brightness and distance fading. */
-@net.neoforged.fml.common.EventBusSubscriber(modid="thaumcraft",bus=net.neoforged.fml.common.EventBusSubscriber.Bus.MOD,value=net.neoforged.api.distmarker.Dist.CLIENT)
+@net.neoforged.fml.common.EventBusSubscriber(modid="thaumcraft_aop",bus=net.neoforged.fml.common.EventBusSubscriber.Bus.MOD,value=net.neoforged.api.distmarker.Dist.CLIENT)
 public final class AuraNodeRenderer implements BlockEntityRenderer<AuraNodeBlockEntity> {
     private static final ResourceLocation TEXTURE=ResourceLocation.parse("thaumcraft:textures/misc/nodes.png");
     private static ShaderInstance shader;

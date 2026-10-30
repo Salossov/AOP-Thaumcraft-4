@@ -7,11 +7,11 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.*;
 import thaumcraft.items.WandFocus;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class FocusControls {
     static final KeyMapping FOCUS=new KeyMapping("key.thaumcraft.focus",org.lwjgl.glfw.GLFW.GLFW_KEY_F,"key.categories.thaumcraft");
     static final KeyMapping MISC=new KeyMapping("key.thaumcraft.wand_misc",org.lwjgl.glfw.GLFW.GLFW_KEY_G,"key.categories.thaumcraft");
-    @EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+    @EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
     public static final class Registration{@SubscribeEvent public static void register(RegisterKeyMappingsEvent event){event.register(FOCUS);event.register(MISC);}}
     @SubscribeEvent public static void crosshair(RenderGuiLayerEvent.Pre event){if(Minecraft.getInstance().screen instanceof FocusRadialScreen&&event.getName().equals(net.minecraft.resources.ResourceLocation.withDefaultNamespace("crosshair")))event.setCanceled(true);}
     // Open before vanilla consumes a conflicting offhand-swap binding.

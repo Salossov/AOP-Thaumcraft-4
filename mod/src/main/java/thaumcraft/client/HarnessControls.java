@@ -13,10 +13,10 @@ import thaumcraft.equipment.EquipmentEvents;
 import thaumcraft.items.*;
 import thaumcraft.network.HarnessTogglePayload;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class HarnessControls {
     private static final KeyMapping TOGGLE=new KeyMapping("key.thaumcraft.harness",org.lwjgl.glfw.GLFW.GLFW_KEY_H,"key.categories.thaumcraft");
-    @EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+    @EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
     public static final class Registration{@SubscribeEvent public static void register(RegisterKeyMappingsEvent event){event.register(TOGGLE);}}
     @SubscribeEvent public static void tick(ClientTickEvent.Post event){
         var mc=Minecraft.getInstance();if(mc.player==null)return;

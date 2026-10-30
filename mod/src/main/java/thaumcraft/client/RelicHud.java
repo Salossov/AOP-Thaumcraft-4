@@ -10,7 +10,7 @@ import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import thaumcraft.blocks.AuraNodeBlockEntity;
 import thaumcraft.items.EldritchRelics;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class RelicHud {
     private static final Map<GlobalPos,Long> DARK_NODES=new HashMap<>();
     public static void note(AuraNodeBlockEntity node){if(node.state.type==thaumcraft.api.nodes.NodeState.Type.DARK&&node.getLevel()!=null)DARK_NODES.put(GlobalPos.of(node.getLevel().dimension(),node.getBlockPos()),System.currentTimeMillis());}

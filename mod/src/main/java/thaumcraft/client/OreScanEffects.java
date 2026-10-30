@@ -13,7 +13,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import thaumcraft.network.OreScanPayload;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class OreScanEffects {
     private static List<OreScanPayload.Marker> markers=List.of();
     private static BlockPos origin=BlockPos.ZERO;

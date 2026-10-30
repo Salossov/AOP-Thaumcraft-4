@@ -7,7 +7,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import thaumcraft.registry.R3Content;
 
-@EventBusSubscriber(modid = "thaumcraft", bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = "thaumcraft_aop", bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class R3Client {
     @SubscribeEvent public static void crucibleRenderer(EntityRenderersEvent.RegisterRenderers event){event.registerBlockEntityRenderer(R3Content.CRUCIBLE_ENTITY.get(),CrucibleRenderer::new);}
     @SubscribeEvent public static void nodeJarRenderer(EntityRenderersEvent.RegisterRenderers event){event.registerBlockEntityRenderer(R3Content.NODE_JAR_ENTITY.get(),JarredNodeRenderer::new);}

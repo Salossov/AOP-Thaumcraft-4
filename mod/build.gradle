@@ -46,7 +46,7 @@ repositories {
 }
 
 dependencies {
-    implementation files(providers.gradleProperty('aopUiJar').getOrElse('libs/aopui-1.21.1-0.7.0.jar'))
+    implementation files(providers.gradleProperty('aopUiJar').getOrElse('libs/aopui-1.21.1-0.8.0.jar'))
     compileOnly project(':api')
     compileOnly 'com.github.glitchfiend:TerraBlender-neoforge:1.21.1-4.1.0.8'
     if (providers.gradleProperty('withTerraBlender').getOrElse('false').toBoolean()) {
@@ -316,7 +316,7 @@ neoForge {
         }
     }
     mods {
-        thaumcraft {
+        thaumcraft_aop {
             sourceSet sourceSets.main
             sourceSet project(':api').sourceSets.main
         }
@@ -333,7 +333,7 @@ neoForge {
 }
 
 neoForge.runs.configureEach {
-    loadedMods = (name.startsWith('r3') || name.startsWith('modelAudit') || name.startsWith('mechanicsLive')) ? [neoForge.mods.thaumcraft, neoForge.mods.thaumcraft_r3_test] : name.startsWith('smoke') ? [neoForge.mods.thaumcraft, neoForge.mods.thaumcraft_r1_test] : name.startsWith('r2') ? [neoForge.mods.thaumcraft, neoForge.mods.thaumcraft_r2_test] : [neoForge.mods.thaumcraft]
+    loadedMods = (name.startsWith('r3') || name.startsWith('modelAudit') || name.startsWith('mechanicsLive')) ? [neoForge.mods.thaumcraft_aop, neoForge.mods.thaumcraft_r3_test] : name.startsWith('smoke') ? [neoForge.mods.thaumcraft_aop, neoForge.mods.thaumcraft_r1_test] : name.startsWith('r2') ? [neoForge.mods.thaumcraft_aop, neoForge.mods.thaumcraft_r2_test] : [neoForge.mods.thaumcraft_aop]
 }
 
 tasks.named('jar', Jar) {
@@ -417,8 +417,8 @@ neoForge {
     }
 }
 neoForge.runs.configureEach {
-    if(name=='viewerReviewServer')loadedMods=[neoForge.mods.thaumcraft,neoForge.mods.thaumcraft_viewer_qa]
-    if(name=='viewerReviewClient')loadedMods=[neoForge.mods.thaumcraft,neoForge.mods.thaumcraft_viewer_qa,neoForge.mods.thaumcraft_recipe_addon]
+    if(name=='viewerReviewServer')loadedMods=[neoForge.mods.thaumcraft_aop,neoForge.mods.thaumcraft_viewer_qa]
+    if(name=='viewerReviewClient')loadedMods=[neoForge.mods.thaumcraft_aop,neoForge.mods.thaumcraft_viewer_qa,neoForge.mods.thaumcraft_recipe_addon]
 }
 
 }

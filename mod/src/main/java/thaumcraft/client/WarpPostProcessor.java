@@ -13,7 +13,7 @@ import org.lwjgl.opengl.*;
 import thaumcraft.effects.WarpEffects;
 
 /** Compose on the completed framebuffer without replacing vanilla or Sodium shaders. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class WarpPostProcessor {
     private static PostChain chain;private static final java.util.List<net.minecraft.client.renderer.PostPass> passes=new java.util.ArrayList<>();private static com.mojang.blaze3d.pipeline.TextureTarget backup;private static RenderTarget main;private static int width,height;private static boolean failed;
     public static void reload(){if(chain!=null)chain.close();if(backup!=null)backup.destroyBuffers();chain=null;passes.clear();backup=null;main=null;failed=false;}

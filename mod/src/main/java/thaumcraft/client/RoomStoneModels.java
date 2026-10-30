@@ -17,7 +17,7 @@ import net.neoforged.neoforge.client.model.*;
 import net.neoforged.neoforge.client.model.data.*;
 import thaumcraft.blocks.RoomStoneBounds;
 
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class RoomStoneModels {
     private static final ModelProperty<Integer> NEIGHBORS=new ModelProperty<>();
     @SubscribeEvent public static void bake(ModelEvent.ModifyBakingResult event){for(String id:List.of("carved_eldritch_stone","ancient_runic_stone","decorated_eldritch_stone")){var key=new ModelResourceLocation(ResourceLocation.fromNamespaceAndPath("thaumcraft",id),"");var base=Objects.requireNonNull(event.getModels().get(key));event.getModels().put(key,new BakedModelWrapper<BakedModel>(base){

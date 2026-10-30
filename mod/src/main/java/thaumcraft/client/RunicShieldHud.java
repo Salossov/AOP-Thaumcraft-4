@@ -8,7 +8,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.*;
 import thaumcraft.network.RunicShieldPayload;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class RunicShieldHud {
     private static int charge,maximum;
     public static void accept(RunicShieldPayload payload){
@@ -33,7 +33,7 @@ public final class RunicShieldHud {
             int color=edge?0xff291531:filled==2||filled==1&&col<4?row<3?0xffe4a1ff:0xffb950de:0xff49354f;g.fill(x+col,y+row,x+col+1,y+row+1,color);
         }
     }
-    @EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT,bus=EventBusSubscriber.Bus.MOD)
+    @EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT,bus=EventBusSubscriber.Bus.MOD)
     public static final class Layers {
         @SubscribeEvent public static void register(net.neoforged.neoforge.client.event.RegisterGuiLayersEvent event){event.registerAbove(net.neoforged.neoforge.client.gui.VanillaGuiLayers.PLAYER_HEALTH,net.minecraft.resources.ResourceLocation.parse("thaumcraft:runic_hearts"),(graphics,partial)->renderHearts(graphics));}
     }

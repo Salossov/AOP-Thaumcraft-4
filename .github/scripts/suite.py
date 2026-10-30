@@ -1,4 +1,4 @@
-"""Build the four-mod suite in dependency order and reuse verified JARs."""
+"""Build the AOP suite and its source dependencies in dependency order and reuse verified JARs."""
 import argparse
 import hashlib
 import json
@@ -15,23 +15,25 @@ import zipfile
 import release
 
 
-STAGES = ('ui', 'core', 'tinkerer', 'compact')
+STAGES = ('ui', 'core', 'tinkerer', 'the', 'compact')
+PUBLIC_STAGES = ('ui', 'core', 'tinkerer', 'compact')
 ROOTS = {'ui': '.dependencies/aopui', 'core': '.',
-         'tinkerer': '.dependencies/tinkerer', 'compact': '.dependencies/compact'}
+         'tinkerer': '.dependencies/tinkerer', 'compact': '.dependencies/compact', 'the': '.dependencies/thaumicenergistics'}
 DEPS = {'ui': (), 'core': ('ui',), 'tinkerer': ('ui', 'core'),
-        'compact': ('ui', 'core', 'tinkerer')}
-MOD_IDS = {'ui': 'aop_ui', 'core': 'thaumcraft', 'tinkerer': 'thaumictinkerer',
-           'compact': 'thaumcraft_viewers'}
+        'the': ('ui', 'core'), 'compact': ('ui', 'core', 'tinkerer', 'the')}
+MOD_IDS = {'ui': 'aop_ui', 'core': 'thaumcraft_aop', 'tinkerer': 'thaumictinkerer_aop',
+           'compact': 'thaumcraft_compact', 'the': 'thaumicenergistics_aop'}
 PATTERNS = {'ui': ('build/libs/aopui-*.jar',),
             'core': ('api/build/libs/thaumcraft-api-*.jar', 'mod/build/libs/thaumcraft-*.jar'),
             'tinkerer': ('build/libs/ThaumicTinkerer-*.jar',),
-            'compact': ('build/libs/aoptc4-compact-*.jar',)}
+            'compact': ('build/libs/aoptc4-compact-*.jar',),
+            'the': ('build/libs/thaumicenergistics-*.jar',)}
 CACHE = Path(os.environ.get('SUITE_CACHE_DIR', '.cache/mod-suite'))
 FORMAT = 1
-REPOSITORIES = {'ui': 'Salossov/aop-ui', 'core': 'Salossov/aop-thaumcraft-4',
-                'tinkerer': 'Salossov/aoptc4-thaumic-tinkerer', 'compact': 'Salossov/aoptc4-compact'}
+REPOSITORIES = {'ui': 'Salossov/AOP-UI', 'core': 'Salossov/AOP-Thaumcraft-4',
+                'tinkerer': 'Salossov/AOPTC4-Thaumic-Tinkerer', 'compact': 'Salossov/AOPTC4-Compact', 'the': 'Salossov/AOPTC4-Thaumic-Energistics'}
 NAMES = {'ui': 'AOP: UI', 'core': 'AOP: Thaumcraft 4',
-         'tinkerer': 'Thaumic Tinkerer', 'compact': 'AOP:TC4 Compact'}
+         'tinkerer': 'Thaumic Tinkerer', 'compact': 'AOP:TC4 Compact', 'the': 'Thaumic Energistics'}
 
 
 def stages():
@@ -95,7 +97,12 @@ def source_identity(root):
 def prepare():
     sources = {stage: source_identity(source_root(stage)) for stage in stages()}
     for stage, source in sources.items():
-        source['version'] = release.select_version('release', os.environ.get('SUITE_' + stage.upper() + '_VERSION', ''), source['version'], '')
+        # Dependencies retain their configured version, including existing port suffixes.
+        # Only the component being published as an ordinary release must be stable.
+        ordinary = os.environ.get('RELEASE_REQUESTED', '').lower() == 'true'
+        publishing = os.environ.get('SUITE_TARGET') == stage or (os.environ.get('SUITE_TARGET') is None and stage in PUBLIC_STAGES)
+        source['version'] = release.select_version('release' if ordinary and publishing else 'build',
+            os.environ.get('SUITE_' + stage.upper() + '_VERSION', ''), source['version'], '')
     java = subprocess.run(['java', '-version'], capture_output=True, text=True, check=True)
     runtime = dict(os=platform.system(), arch=platform.machine(),
                    java=java.stdout + java.stderr,
@@ -162,7 +169,8 @@ def validate_jar(path, version, mod_id=None):
 
 def artifact_names(stage, version):
     prefix = {'ui': 'aopui-1.21.1-', 'core': 'thaumcraft-1.21.1-',
-              'tinkerer': 'ThaumicTinkerer-1.21.1-', 'compact': 'aoptc4-compact-'}[stage]
+              'tinkerer': 'ThaumicTinkerer-1.21.1-', 'compact': 'aoptc4-compact-',
+              'the': 'thaumicenergistics-1.21.1-'}[stage]
     prefixes = [prefix] + (['thaumcraft-api-'] if stage == 'core' else [])
     return {prefix + version + suffix for prefix in prefixes for suffix in ('.jar', '-sources.jar')}
 
@@ -286,6 +294,8 @@ def artifact(stage, prefix):
 
 def build(stage, force=False):
     lock = read_json(CACHE / 'lock.json')
+    for dependency in DEPS[stage]:
+        verified(dependency)
     channel = lock['mode']
     channels = ('release',) if channel == 'release' else ('release', 'nightly')
     reused = False
@@ -306,11 +316,14 @@ def build(stage, force=False):
             args.append(':mod:compileProductionVerificationJava')
         if stage != 'ui':
             args.append('-PaopUiJar=' + artifact('ui', 'aopui-'))
-        if stage in ('tinkerer', 'compact'):
+        if stage in ('tinkerer', 'the', 'compact'):
             args.extend(['-PthaumcraftApiJar=' + artifact('core', 'thaumcraft-api-'),
                          '-PthaumcraftRuntimeJar=' + artifact('core', 'thaumcraft-1.21.1-')])
         if stage == 'compact':
             args.append('-PtinkererJar=' + artifact('tinkerer', 'ThaumicTinkerer-'))
+            args.append('-PthaumicEnergisticsJar=' + artifact('the', 'thaumicenergistics-'))
+        if stage == 'the':
+            args.append('sourcesJar')
         subprocess.run(args, cwd=root, check=True)
         paths = []
         for pattern in PATTERNS[stage]:
@@ -348,7 +361,7 @@ def collect(stage=None):
     destination.mkdir(parents=True, exist_ok=True)
     manifests = {}
     sums = []
-    for stage in ((stage,) if stage else stages()):
+    for stage in ((stage,) if stage else PUBLIC_STAGES):
         manifest = verified(stage)
         manifests[stage] = manifest
         for name, checksum in manifest['artifacts'].items():
@@ -361,7 +374,7 @@ def collect(stage=None):
 
 def publish(dry_run=False, stage=None):
     lock = read_json(CACHE / 'lock.json')
-    manifests = {item: verified(item) for item in ((stage,) if stage else stages())}
+    manifests = {item: verified(item) for item in ((stage,) if stage else PUBLIC_STAGES)}
     if dry_run:
         print(json.dumps({stage: dict(repository=lock['repositories'][stage],
                                      version=manifest['plan']['version'],
@@ -369,6 +382,8 @@ def publish(dry_run=False, stage=None):
                                      prerelease=lock['mode'] == 'nightly')
                           for stage, manifest in manifests.items()}, indent=2))
         return
+    if os.environ.get('ACT') == 'true':
+        raise ValueError('Local act runs cannot publish; use --dry-run.')
     existing = set()
     # Check all destinations before publishing any of them.
     for stage, manifest in manifests.items():

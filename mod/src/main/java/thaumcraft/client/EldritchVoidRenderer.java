@@ -14,7 +14,7 @@ import thaumcraft.blocks.*;
 import thaumcraft.registry.R5Content;
 
 /** Native render states own the effect; no fixed-function GL state escapes the draw. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class EldritchVoidRenderer implements BlockEntityRenderer<EldritchVoidBlockEntity> {
     private static ShaderInstance shader;
     private static final RenderType NEAR=RenderType.create("thaumcraft_eldritch_void",DefaultVertexFormat.POSITION,VertexFormat.Mode.QUADS,1024,false,false,RenderType.CompositeState.builder().setShaderState(new RenderStateShard.ShaderStateShard(()->{if(shader!=null)shader.safeGetUniform("Clock").set((System.currentTimeMillis()%700000L)/250000f);return shader;})).setTextureState(RenderStateShard.MultiTextureStateShard.builder().add(texture("tunnel"),false,false).add(texture("particlefield"),false,false).build()).setCullState(RenderStateShard.NO_CULL).createCompositeState(false));

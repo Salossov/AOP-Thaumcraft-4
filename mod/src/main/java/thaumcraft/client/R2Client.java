@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.extensions.common.*;
 import thaumcraft.fluids.R2Fluids;
 import thaumcraft.registry.R2Content;
 
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class R2Client {
     @SubscribeEvent public static void tooltips(RegisterClientTooltipComponentFactoriesEvent event){event.register(AspectTooltipData.class,AspectTooltipRenderer::new);event.register(thaumcraft.items.WandVisTooltip.class,WandVisTooltipRenderer::new);}
     @SubscribeEvent public static void models(ModelEvent.RegisterAdditional event){event.register(TableDetailsRenderer.QUILL);}

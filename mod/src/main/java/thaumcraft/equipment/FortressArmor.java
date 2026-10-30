@@ -13,7 +13,7 @@ import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.common.damagesource.DamageContainer;
 import thaumcraft.items.ThaumicArmorItem;
 
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class FortressArmor {
     public static boolean goggles(ItemStack stack){return stack.getItem() instanceof thaumcraft.items.GogglesItem||stack.getItem() instanceof ThaumicArmorItem armor&&(armor.kind()==ThaumicArmorItem.Kind.VOID_ROBE&&armor.getType()==ArmorItem.Type.HELMET||armor.kind()==ThaumicArmorItem.Kind.FORTRESS&&stack.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag().getBoolean("goggles"));}
     public static int mask(ItemStack stack){var data=stack.getOrDefault(DataComponents.CUSTOM_DATA,CustomData.EMPTY).copyTag();return stack.getItem() instanceof ThaumicArmorItem armor&&armor.kind()==ThaumicArmorItem.Kind.FORTRESS&&data.contains("mask")?data.getInt("mask"):-1;}

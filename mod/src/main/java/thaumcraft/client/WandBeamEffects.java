@@ -15,7 +15,7 @@ import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import thaumcraft.api.client.WandBeamApi;
 
 /** Fresh, eight-tick source beams. RenderType scopes culling, additive blending and depth writes. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class WandBeamEffects {
     private static final List<Beam> ACTIVE=new ArrayList<>();
     static void install(){WandBeamApi.install((player,effect)->{

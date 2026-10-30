@@ -16,7 +16,7 @@ import thaumcraft.entities.*;
 import thaumcraft.items.*;
 
 /** TC4 face glyphs and the flowing script ribbon from a selected golem's head. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class GolemLinkOverlay {
     private static final ResourceLocation MARK=ResourceLocation.parse("thaumcraft:textures/misc/mark.png"),HOME=ResourceLocation.parse("thaumcraft:textures/misc/home.png"),SCRIPT=ResourceLocation.parse("thaumcraft:textures/misc/script.png"),EMPTY=ResourceLocation.parse("thaumcraft:textures/blocks/empty.png");
     private static final int[] COLORS={0xF0F0F0,15435844,12801229,6719955,14602026,4312372,14188952,0x434343,0xA0A0A0,2651799,8073150,2437522,5320730,3887386,11743532,0x1E1B1B};

@@ -15,7 +15,7 @@ import thaumcraft.items.*;
 import thaumcraft.registry.R3Equipment;
 
 /** Transforms native loot after protection and normal loot calculation. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class NativeOreDrops {
     @SubscribeEvent public static void drops(BlockDropsEvent event){
         var tool=event.getTool();var registry=event.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT);

@@ -11,7 +11,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import thaumcraft.network.GolemDebugPayload;
 
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class GolemDebugService {
     private static final String FLAG="ThaumcraftGolemDebug";
     public static boolean enabled(ServerPlayer player){return player.getPersistentData().getBoolean(FLAG);}

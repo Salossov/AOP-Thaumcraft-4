@@ -14,7 +14,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import org.lwjgl.opengl.GL11;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT,bus=EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT,bus=EventBusSubscriber.Bus.MOD)
 public final class WandBeamRendering extends RenderType {
     private static ShaderInstance shader;
     private static final TransparencyStateShard ADDITIVE=new TransparencyStateShard("tc4_wand_beam_additive",()->{

@@ -14,7 +14,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.LootTableLoadEvent;
 
 /** Adds TC4's original weighted entries to the modern chest pool, retaining vanilla loot. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class KnowledgeFragmentLoot {
     private static final Set<String> TABLES=Set.of("chests/simple_dungeon","chests/jungle_temple","chests/desert_pyramid","chests/abandoned_mineshaft","chests/stronghold_corridor","chests/stronghold_crossing","chests/stronghold_library");
     @SubscribeEvent public static void load(LootTableLoadEvent event){

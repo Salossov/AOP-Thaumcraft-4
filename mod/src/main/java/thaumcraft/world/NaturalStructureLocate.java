@@ -18,7 +18,7 @@ import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import thaumcraft.config.ThaumcraftConfig;
 
 /** Finds actual natural placements, including cold chunks, using the ordinary population stream. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class NaturalStructureLocate {
     public static final String[] KINDS={"mound","hilltop","ring_altar","obelisk","cultists","totem","spider_tree","magical_forest","tainted_land","cancel"};
     private static final Map<String,Search> SEARCHES=new LinkedHashMap<>();

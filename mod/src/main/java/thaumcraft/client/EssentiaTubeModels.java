@@ -18,7 +18,7 @@ import net.neoforged.neoforge.client.model.BakedModelWrapper;
 import net.neoforged.neoforge.client.model.data.*;
 
 /** Adds tube arms from the connection properties synchronized in the native block state. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class EssentiaTubeModels {
     private static final List<String> IDS=List.of("essentia_tube","essentia_valve","filtered_essentia_tube","restricted_essentia_tube","directional_essentia_tube","essentia_buffer");
     private static final ModelProperty<Integer> CONNECTIONS=new ModelProperty<>();

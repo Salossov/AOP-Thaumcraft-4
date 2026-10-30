@@ -12,7 +12,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import thaumcraft.api.client.ParticleApi;
 
 /** Native particle-engine adaptation of TC4 FXSparkle, untargeted FXWisp and FXBurst. */
-@EventBusSubscriber(modid = "thaumcraft", bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = "thaumcraft_aop", bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public final class AddonParticleEffects {
     public static void receiveSmoke(thaumcraft.network.SmokeSpiralPayload packet){
         var minecraft=Minecraft.getInstance();var level=minecraft.level;

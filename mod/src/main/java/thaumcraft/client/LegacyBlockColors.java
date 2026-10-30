@@ -8,7 +8,7 @@ import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import thaumcraft.registry.R2Content;
 
 /** TC4 taint adopts grass colour outside its tainted biome; inventory samples stay purple. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class LegacyBlockColors {
     @SubscribeEvent public static void blocks(RegisterColorHandlersEvent.Block event){event.register((state,level,pos,tint)->{
         if(level==null||pos==null)return 0x8a21b5;

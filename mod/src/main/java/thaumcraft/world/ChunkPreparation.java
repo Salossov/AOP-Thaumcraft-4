@@ -9,7 +9,7 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 
 /** FULL tickets are scheduled by the normal chunk manager; polling never joins a future. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class ChunkPreparation implements AutoCloseable {
     private static final TicketType<Long> TYPE=TicketType.create("thaumcraft_preparation",Long::compare);
     private static final Set<ChunkPreparation> ACTIVE=Collections.newSetFromMap(new IdentityHashMap<>());

@@ -8,7 +8,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import thaumcraft.network.*;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class BiomeColumnClientEvents {
     @SubscribeEvent public static void login(ClientPlayerNetworkEvent.LoggingIn event) { ClientBiomeColumns.listener(BiomeColumnClientEvents::changed); }
     @SubscribeEvent public static void logout(ClientPlayerNetworkEvent.LoggingOut event) { ClientBiomeColumns.clear();ClientKnowledge.clear(); }

@@ -22,7 +22,7 @@ import thaumcraft.config.ThaumcraftConfig;
 import thaumcraft.data.ThaumcraftData;
 import thaumcraft.items.*;
 
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class EquipmentEvents {
     private static final ResourceLocation LEGACY_SPEED=ResourceLocation.parse("thaumcraft:legacy_attack_speed");
     private static final ResourceLocation TRAVELLER_STEP=ResourceLocation.parse("thaumcraft:traveller_step");

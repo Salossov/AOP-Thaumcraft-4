@@ -19,7 +19,7 @@ import thaumcraft.items.ThaumometerItem;
 import thaumcraft.network.*;
 
 /** Vanilla tooltip plus scan status/aspects; server owns timing and rewards. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class ScanUi {
     private static AbstractContainerMenu activeMenu;private static int activeSlot=-1,scanBeganTick;private static ItemStack activeStack=ItemStack.EMPTY;private static long sequence;private static UUID session;
     private static String justScanned="";

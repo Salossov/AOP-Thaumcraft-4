@@ -10,7 +10,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.*;
 import thaumcraft.network.FocusDigPayload;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class FocusDigEffects {
     private record Beam(Vec3 endpoint,long expires){}
     private static final Map<Integer,Beam> beams=new HashMap<>();

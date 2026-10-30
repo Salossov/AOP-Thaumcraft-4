@@ -20,7 +20,7 @@ import org.joml.Vector3f;
 import thaumcraft.blocks.TallowCandleGeometry;
 
 /** Native baked geometry/model data; no tile or render-time world RNG is needed. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class TallowCandleModels {
     private static final ModelProperty<List<BakedQuad>> DRIPS=new ModelProperty<>();
     @SubscribeEvent public static void bake(ModelEvent.ModifyBakingResult event){

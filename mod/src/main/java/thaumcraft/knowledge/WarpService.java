@@ -19,7 +19,7 @@ import thaumcraft.effects.*;
 import thaumcraft.config.ThaumcraftConfig;
 
 /** TC4's decaying warp counter, exact event brackets and research thresholds. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class WarpService {
     @SubscribeEvent public static void tick(PlayerTickEvent.Post event){if(!(event.getEntity() instanceof ServerPlayer player))return;if(player.tickCount>0&&player.tickCount%2000==0&&!ThaumcraftConfig.WUSS_MODE.get()&&!player.hasEffect(WarpEffects.WARP_WARD))check(player);if(player.tickCount%10==0&&player.hasEffect(WarpEffects.DEATH_GAZE))gaze(player);}
     @SubscribeEvent public static void crafted(PlayerEvent.ItemCraftedEvent event){if(event.getEntity() instanceof ServerPlayer player)crafted(player,event.getCrafting());}

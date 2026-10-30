@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 
 /** Original extruded item icons use flat GUI lighting. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class MirrorItemModels {
     @SubscribeEvent public static void bake(ModelEvent.ModifyBakingResult event){for(String name:List.of("magic_mirror","essentia_mirror")){var key=new ModelResourceLocation(ResourceLocation.parse("thaumcraft:"+name),"inventory");var base=event.getModels().get(key);if(base==null)continue;event.getModels().put(key,new BakedModelWrapper<BakedModel>(base){
         @Override public boolean isGui3d(){return false;}

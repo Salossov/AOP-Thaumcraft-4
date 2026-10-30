@@ -12,7 +12,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 
 /** Preserve the source GL_GREATER 1/255 alpha cutoff instead of vanilla particle .1. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT,bus=EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT,bus=EventBusSubscriber.Bus.MOD)
 public final class SmokeSpiralRendering {
     private static ShaderInstance shader;
     static final ParticleRenderType PARTICLES=(tessellator,textures)->{

@@ -12,7 +12,7 @@ import net.neoforged.neoforge.event.entity.player.*;
 import thaumcraft.entities.PrimalArrow;
 
 /** Original bow hooks: primal ammunition is selected before ordinary arrows. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class BowEvents {
     public static int enchantment(ItemStack stack,Level l,ResourceKey<Enchantment> key){return EnchantmentHelper.getItemEnchantmentLevel(l.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(key),stack);}
     public static ItemStack ammunition(Player p){for(var stack:p.getInventory().items)if(!stack.isEmpty()&&stack.getItem() instanceof PrimalArrowItem)return stack;var off=p.getOffhandItem();return off.getItem() instanceof PrimalArrowItem?off:ItemStack.EMPTY;}

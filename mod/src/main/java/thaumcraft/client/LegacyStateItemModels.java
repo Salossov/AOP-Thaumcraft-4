@@ -16,7 +16,7 @@ import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.model.BakedModelWrapper;
 
 /** Preserve legacy inventory variants carried by the native block-state component. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class LegacyStateItemModels {
     private static final Map<String,String> VARIANTS=Map.of("greatwood_slab","greatwood_planks","silverwood_slab","silverwood_planks","arcane_stone_brick_slab","arcane_stone_bricks","golem_fetter","golem_fetter_active","item_grate","item_grate_closed");
     private static ModelResourceLocation variant(String id){return ModelResourceLocation.standalone(ResourceLocation.parse("thaumcraft:item/state_"+id));}

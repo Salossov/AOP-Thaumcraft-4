@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.renderer.*;
 import thaumcraft.fluids.R4Fluids;
 
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class R4Client {
     @SubscribeEvent public static void candleBlockColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Block e){e.register((state,level,pos,tint)->tint==0?0xff000000|((thaumcraft.blocks.TallowCandleBlock)state.getBlock()).color:-1,thaumcraft.registry.R4Content.CANDLES.stream().map(java.util.function.Supplier::get).toArray(net.minecraft.world.level.block.Block[]::new));}
     @SubscribeEvent public static void candleItemColors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Item e){e.register((stack,tint)->tint==0?0xff000000|((thaumcraft.blocks.TallowCandleBlock)((net.minecraft.world.item.BlockItem)stack.getItem()).getBlock()).color:-1,thaumcraft.registry.R4Content.CANDLES.stream().map(b->b.get().asItem()).toArray(net.minecraft.world.item.Item[]::new));}

@@ -15,7 +15,7 @@ import thaumcraft.api.world.ChunkPreparationApi;
 import thaumcraft.world.ChunkPreparation;
 
 /** Owner lifetime is independent of the FULL tickets held for its operation. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class PreparedChunks implements ChunkPreparationApi.Access {
     private static final Set<Job> ACTIVE=Collections.newSetFromMap(new IdentityHashMap<>());
     @Override public ChunkPreparationApi.Request prepare(BlockEntity owner,Collection<ChunkPos> positions){

@@ -14,7 +14,7 @@ import thaumcraft.api.aspects.Aspect;
  * random screen position along a bezier toward the Thaumonomicon in the top-right corner,
  * alongside "Learn More" style notifications stacked on the right edge.
  */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class ResearchNotifications {
     private static final long NOTIFICATION_DELAY=6000,ASPECT_LIFE=1500;
     private static final ResearchNotificationQueue<Entry> TEXT=new ResearchNotificationQueue<>(8,NOTIFICATION_DELAY);

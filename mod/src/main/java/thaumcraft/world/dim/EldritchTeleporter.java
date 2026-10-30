@@ -17,7 +17,7 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import thaumcraft.registry.R5Content;
 
 /** TC4's 128-block, three-dimensional portal search. Cache lifetime belongs to a world. */
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class EldritchTeleporter {
     public static final ResourceKey<Level> OUTER=ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,ResourceLocation.parse("thaumcraft:outer_lands"));
     private record Cached(BlockPos pos,long used){}

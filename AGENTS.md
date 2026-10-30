@@ -1,5 +1,7 @@
 # Working on AOP: Thaumcraft 4
 
+- NeoForge loader ID: `thaumcraft_aop`. Keep the existing content namespace `thaumcraft` and configuration filenames (user decision, 2026-11-01).
+
 ## Project scope
 
 This repository contains an unofficial port of Thaumcraft 4.2.3.5 from Minecraft 1.7.10 to Minecraft 1.21.1 / NeoForge. The working root is this `repo` directory, not its parent directory containing archives and reports.

@@ -59,7 +59,7 @@ jobs:
       RELEASE_REQUESTED: ${{ inputs.release || false }}
       SUITE_FORCE_REBUILD: ${{ inputs.force_rebuild || false }}
       SUITE_CORE_VERSION: ${{ inputs.version || '' }}
-      SUITE_UI_REPOSITORY: ${{ vars.AOPUI_REPOSITORY || 'Salossov/aop-ui' }}
+      SUITE_UI_REPOSITORY: ${{ vars.AOPUI_REPOSITORY || 'Salossov/AOP-UI' }}
       SUITE_CORE_REPOSITORY: ${{ github.repository }}
     steps:
       - name: Check out source
@@ -72,7 +72,7 @@ jobs:
         if: ${{ !env.ACT }}
         uses: actions/checkout@v7
         with:
-          repository: ${{ vars.AOPUI_REPOSITORY || 'Salossov/aop-ui' }}
+          repository: ${{ vars.AOPUI_REPOSITORY || 'Salossov/AOP-UI' }}
           token: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
           ref: ${{ vars.AOPUI_REF || 'main' }}
           path: .dependencies/aopui

@@ -10,7 +10,7 @@ import net.neoforged.neoforge.event.entity.living.LivingDropsEvent;
 import thaumcraft.registry.*;
 import thaumcraft.fluids.LiquidDeathBlock;
 
-@EventBusSubscriber(modid="thaumcraft")
+@EventBusSubscriber(modid="thaumcraft_aop")
 public final class CleansingEvents {
     @SubscribeEvent public static void saltExpires(ItemExpireEvent event){var item=event.getEntity();if(!item.getItem().is(R4Content.BATH_SALTS.get()))return;var pos=item.blockPosition();var level=item.level();var state=level.getBlockState(pos);if(state.is(Blocks.WATER)&&state.getFluidState().isSource())level.setBlockAndUpdate(pos,R4Content.PURIFYING_FLUID.get().defaultBlockState());}
     @SubscribeEvent public static void dissolved(LivingDropsEvent event){

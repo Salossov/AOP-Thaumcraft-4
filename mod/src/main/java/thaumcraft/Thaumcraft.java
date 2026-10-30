@@ -6,12 +6,12 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
-import thaumcraft.api.ThaumcraftIds;
 import thaumcraft.config.ThaumcraftConfig;
 import thaumcraft.registry.ThaumcraftContent;
 
-@Mod(ThaumcraftIds.MOD_ID)
+@Mod(Thaumcraft.MOD_ID)
 public final class Thaumcraft {
+    public static final String MOD_ID = "thaumcraft_aop";
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public Thaumcraft(IEventBus modBus, ModContainer container) {
@@ -48,10 +48,10 @@ public final class Thaumcraft {
         modBus.addListener(thaumcraft.network.ThaumcraftNetwork::register);
         thaumcraft.knowledge.KnowledgeService.register();
         thaumcraft.knowledge.InventoryScanService.register();
-        container.registerConfig(ModConfig.Type.STARTUP, thaumcraft.config.ThaumcraftContentConfig.SPEC);
-        container.registerConfig(ModConfig.Type.SERVER, ThaumcraftConfig.SPEC);
-        container.registerConfig(ModConfig.Type.CLIENT, thaumcraft.config.ThaumcraftClientConfig.SPEC);
-        aop.ui.api.SettingsRegistry.register("thaumcraft", "Thaumcraft", aop.ui.api.UiTheme.THAUMCRAFT);
+        container.registerConfig(ModConfig.Type.STARTUP, thaumcraft.config.ThaumcraftContentConfig.SPEC, "thaumcraft-startup.toml");
+        container.registerConfig(ModConfig.Type.SERVER, ThaumcraftConfig.SPEC, "thaumcraft-server.toml");
+        container.registerConfig(ModConfig.Type.CLIENT, thaumcraft.config.ThaumcraftClientConfig.SPEC, "thaumcraft-client.toml");
+        aop.ui.api.SettingsRegistry.register("thaumcraft_aop", "thaumcraft", "Thaumcraft", aop.ui.api.UiTheme.THAUMCRAFT);
         thaumcraft.data.ThaumcraftData.register();
         thaumcraft.world.WorldBiomes.register();
         thaumcraft.world.NaturalBiomeIntegration.register(modBus);

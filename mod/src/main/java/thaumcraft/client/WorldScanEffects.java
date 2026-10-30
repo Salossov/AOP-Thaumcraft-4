@@ -10,7 +10,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import thaumcraft.items.ThaumometerItem;
 import thaumcraft.network.BookBirthPayload;
 
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class WorldScanEffects {
     private record Birth(int entityId,Vec3 position,long start){}
     private static final List<Birth> births=new ArrayList<>();

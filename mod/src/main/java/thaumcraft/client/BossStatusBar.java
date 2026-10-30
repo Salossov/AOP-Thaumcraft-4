@@ -12,7 +12,7 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import thaumcraft.network.BossStatusPayload;
 
 /** One bar: health, absorption and the active anger timer. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class BossStatusBar {
     private static final Map<UUID,BossStatusPayload> STATUS=new HashMap<>();
     public static void accept(BossStatusPayload packet){if(packet.removed())STATUS.remove(packet.bar());else STATUS.put(packet.bar(),packet);}

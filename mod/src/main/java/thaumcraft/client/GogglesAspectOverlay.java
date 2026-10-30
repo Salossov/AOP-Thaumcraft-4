@@ -27,7 +27,7 @@ import thaumcraft.production.TransportBlockEntity;
  * (node, warded jar) while wearing Goggles of Revealing draws its aspect icons
  * with amounts floating above the block. Unknown aspects show the ? icon.
  */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class GogglesAspectOverlay {
     private static float tagScale;
     private static final FrameAnimation clock=new FrameAnimation();

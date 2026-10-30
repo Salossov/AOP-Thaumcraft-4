@@ -18,7 +18,7 @@ import net.neoforged.neoforge.client.model.data.*;
 import thaumcraft.blocks.WardedGlassConnections;
 
 /** Original 47 connected glass tiles, baked into the native chunk renderer. */
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class WardedGlassModels {
     private static final ModelProperty<int[]> TILES=new ModelProperty<>();
     private static ModelResourceLocation tile(int i){return ModelResourceLocation.standalone(ResourceLocation.fromNamespaceAndPath("thaumcraft","block/warded_glass_"+(i+1)));}

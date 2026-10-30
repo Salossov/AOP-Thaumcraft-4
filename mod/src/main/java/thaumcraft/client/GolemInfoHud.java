@@ -14,7 +14,7 @@ import thaumcraft.items.GolemCoreItem;
 import thaumcraft.registry.R3Equipment;
 
 /** Inspection shares the goggles/thaumometer reveal rule, with the bell as a tool for configuring golems. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class GolemInfoHud {
     @SubscribeEvent public static void render(RenderLevelStageEvent event){
         if(event.getStage()!=RenderLevelStageEvent.Stage.AFTER_PARTICLES)return;

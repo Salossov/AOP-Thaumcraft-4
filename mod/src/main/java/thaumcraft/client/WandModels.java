@@ -12,7 +12,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.api.distmarker.Dist;
 import thaumcraft.items.*;
-@EventBusSubscriber(modid="thaumcraft",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",bus=EventBusSubscriber.Bus.MOD,value=Dist.CLIENT)
 public final class WandModels {
     @SubscribeEvent public static void renderBuffers(net.neoforged.neoforge.client.event.RegisterRenderBuffersEvent event){
         // Draw additive runes after the fixed opaque item buffer, or their depth

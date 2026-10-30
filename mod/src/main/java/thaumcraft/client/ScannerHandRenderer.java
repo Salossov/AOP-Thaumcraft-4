@@ -20,7 +20,7 @@ import thaumcraft.api.aspects.Aspect;
 import thaumcraft.items.ThaumometerItem;
 
 /** Two-hand first-person lens, with labels and scanned aspects on its glass plane. */
-@EventBusSubscriber(modid="thaumcraft",value=Dist.CLIENT)
+@EventBusSubscriber(modid="thaumcraft_aop",value=Dist.CLIENT)
 public final class ScannerHandRenderer {
     public static boolean hasTarget(){return ScannerTarget.current()!=null;}
     @SubscribeEvent public static void render(RenderHandEvent event){

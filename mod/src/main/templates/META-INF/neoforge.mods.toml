@@ -6,44 +6,44 @@ license="All Rights Reserved"
 config="thaumcraft.mixins.json"
 
 [[mods]]
-modId="thaumcraft"
+modId="thaumcraft_aop"
 version="${version}"
 displayName="AOP: Thaumcraft 4"
 logoFile="logo.png"
 authors="Salossov (port), Azanor (original mod)"
 description='''Unofficial port of Thaumcraft 4.2.3.5 to Minecraft 1.21.1 / NeoForge. Research, aspects, aura nodes, wands, alchemy, infusion, golems, equipment and the Outer Lands. Includes an addon API. JEI/EMI recipe integration is a separate optional mod. Original Thaumcraft by Azanor.'''
 
-[[dependencies.thaumcraft]]
+[[dependencies.thaumcraft_aop]]
 modId="minecraft"
 type="required"
 versionRange="[1.21.1]"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.thaumcraft]]
+[[dependencies.thaumcraft_aop]]
 modId="neoforge"
 type="required"
 versionRange="[${neoVersion},21.2)"
 ordering="NONE"
 side="BOTH"
 
-[[dependencies.thaumcraft]]
+[[dependencies.thaumcraft_aop]]
 modId="terrablender"
 type="optional"
 versionRange="[4.1.0.8,4.2)"
 ordering="AFTER"
 side="BOTH"
 
-[[dependencies.thaumcraft]]
+[[dependencies.thaumcraft_aop]]
 modId="curios"
 type="required"
 versionRange="[${curiosVersion},10)"
 ordering="AFTER"
 side="BOTH"
 
-[[dependencies.thaumcraft]]
+[[dependencies.thaumcraft_aop]]
 modId="aop_ui"
 type="required"
-versionRange="[0.7.0,)"
+versionRange="[0.8.0,)"
 ordering="AFTER"
 side="BOTH"
