@@ -10,30 +10,32 @@ import shutil
 import subprocess
 import tempfile
 import tomllib
+from urllib.parse import urlparse
+from urllib.request import urlopen
 import zipfile
 
 import release
 
 
-STAGES = ('ui', 'core', 'tinkerer', 'the', 'compact')
-PUBLIC_STAGES = ('ui', 'core', 'tinkerer', 'compact')
+STAGES = ('ui', 'core', 'tinkerer', 'fm', 'the', 'compact')
+PUBLIC_STAGES = STAGES
 ROOTS = {'ui': '.dependencies/aopui', 'core': '.',
-         'tinkerer': '.dependencies/tinkerer', 'compact': '.dependencies/compact', 'the': '.dependencies/thaumicenergistics'}
+         'tinkerer': '.dependencies/tinkerer', 'compact': '.dependencies/compact', 'the': '.dependencies/thaumicenergistics', 'fm': '.dependencies/forbidden'}
 DEPS = {'ui': (), 'core': ('ui',), 'tinkerer': ('ui', 'core'),
-        'the': ('ui', 'core'), 'compact': ('ui', 'core', 'tinkerer', 'the')}
+        'fm': ('ui', 'core', 'tinkerer'), 'the': ('ui', 'core'), 'compact': ('ui', 'core', 'tinkerer', 'the')}
 MOD_IDS = {'ui': 'aop_ui', 'core': 'thaumcraft_aop', 'tinkerer': 'thaumictinkerer_aop',
-           'compact': 'thaumcraft_compact', 'the': 'thaumicenergistics_aop'}
+           'compact': 'thaumcraft_compact', 'the': 'thaumicenergistics_aop', 'fm': 'forbidden_aop'}
 PATTERNS = {'ui': ('build/libs/aopui-*.jar',),
             'core': ('api/build/libs/thaumcraft-api-*.jar', 'mod/build/libs/thaumcraft-*.jar'),
             'tinkerer': ('build/libs/ThaumicTinkerer-*.jar',),
             'compact': ('build/libs/aoptc4-compact-*.jar',),
-            'the': ('build/libs/thaumicenergistics-*.jar',)}
+            'the': ('build/libs/thaumicenergistics-*.jar',), 'fm': ('build/libs/ForbiddenMagic-*.jar',)}
 CACHE = Path(os.environ.get('SUITE_CACHE_DIR', '.cache/mod-suite'))
 FORMAT = 1
 REPOSITORIES = {'ui': 'Salossov/AOP-UI', 'core': 'Salossov/AOP-Thaumcraft-4',
-                'tinkerer': 'Salossov/AOPTC4-Thaumic-Tinkerer', 'compact': 'Salossov/AOPTC4-Compact', 'the': 'Salossov/AOPTC4-Thaumic-Energistics'}
+                'tinkerer': 'Salossov/AOPTC4-Thaumic-Tinkerer', 'compact': 'Salossov/AOPTC4-Compact', 'the': 'Salossov/AOPTC4-Thaumic-Energistics', 'fm': 'Salossov/AOPTC4-Forbidden-Magic'}
 NAMES = {'ui': 'AOP: UI', 'core': 'AOP: Thaumcraft 4',
-         'tinkerer': 'Thaumic Tinkerer', 'compact': 'AOP:TC4 Compact', 'the': 'Thaumic Energistics'}
+         'tinkerer': 'Thaumic Tinkerer', 'compact': 'AOP:TC4 Compact', 'the': 'Thaumic Energistics', 'fm': 'Forbidden Magic'}
 
 
 def stages():
@@ -94,6 +96,47 @@ def source_identity(root):
     return dict(revision=revision, content=identity(files), version=props['mod_version'].strip())
 
 
+def external_records(stage):
+    if stage != 'fm':
+        return {}
+    records = read_json(source_root(stage) / '.github/ci-external.json')
+    if set(records) != {'botaniaJar', 'bloodMagicJar', 'modopediaJar'}:
+        raise ValueError('Missing or unexpected FM external dependency roles')
+    for row in records.values():
+        parsed = urlparse(row['url'])
+        if parsed.scheme != 'https' or parsed.username or parsed.password or not parsed.hostname:
+            raise ValueError('External dependency URL must use HTTPS')
+        name = row['file']
+        if Path(name).name != name or '/' in name or '\\' in name or ':' in name or not name.endswith('.jar'):
+            raise ValueError('Unsafe external dependency filename')
+        if not re.fullmatch('[0-9a-f]{64}', row['sha256']) or not re.fullmatch('[a-z0-9_]+', row['mod_id']):
+            raise ValueError('Invalid external dependency record')
+    return records
+
+
+def external_paths(records):
+    paths = {}
+    for role, row in records.items():
+        path = CACHE / 'external' / row['sha256'] / row['file']
+        if path.is_symlink():
+            raise ValueError('External dependency may not be a symlink')
+        if not path.is_file() or digest(path.read_bytes()) != row['sha256']:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with urlopen(row['url'], timeout=90) as response:
+                if urlparse(response.geturl()).scheme != 'https':
+                    raise ValueError('External dependency redirected outside HTTPS')
+                data = response.read(1024 ** 3 + 1)
+            if len(data) > 1024 ** 3 or digest(data) != row['sha256']:
+                raise ValueError('External dependency SHA-256 mismatch: ' + role)
+            path.write_bytes(data)
+        with zipfile.ZipFile(path) as jar:
+            metadata = tomllib.loads(jar.read('META-INF/neoforge.mods.toml').decode())
+            if not any(mod['modId'] == row['mod_id'] for mod in metadata.get('mods', [])):
+                raise ValueError('Wrong external dependency mod ID: ' + role)
+        paths[role] = str(path.resolve())
+    return paths
+
+
 def prepare():
     sources = {stage: source_identity(source_root(stage)) for stage in stages()}
     for stage, source in sources.items():
@@ -116,6 +159,7 @@ def prepare():
                 mode='release' if os.environ.get('RELEASE_REQUESTED', '').lower() == 'true' else 'nightly',
                 recipe=identity({name: digest(Path(__file__).with_name(name).read_bytes())
                                  for name in ('suite.py', 'release.py')}))
+    lock['external'] = {stage: external_records(stage) for stage in stages() if stage == 'fm'}
     lock['id'] = identity(lock)
     write_json(CACHE / 'lock.json', lock)
     print('Suite ' + lock['id'][:16])
@@ -132,6 +176,8 @@ def plan(stage):
     for dependency in DEPS[stage]:
         manifest = verified(dependency)
         deps[dependency] = dict(key=manifest['key'], artifacts=manifest['artifacts'])
+    if stage == 'fm':
+        deps['external'] = lock['external']['fm']
     outputs = {}
     for channel in ('release', 'nightly'):
         version = lock['sources'][stage]['version']
@@ -158,7 +204,7 @@ def validate_jar(path, version, mod_id=None):
         if archive.testzip() is not None:
             raise ValueError('Damaged JAR: ' + str(path))
         if any('/verification/' in name or '/productionVerification/' in name or
-               name.startswith('aop/ui/verification/') for name in archive.namelist()):
+               name.startswith(('aop/ui/verification/', 'forbidden/acceptance/')) for name in archive.namelist()):
             raise ValueError('Verification files leaked into ' + str(path))
         if mod_id is not None and not path.name.endswith('-sources.jar'):
             metadata = tomllib.loads(archive.read('META-INF/neoforge.mods.toml').decode('utf-8'))
@@ -170,7 +216,7 @@ def validate_jar(path, version, mod_id=None):
 def artifact_names(stage, version):
     prefix = {'ui': 'aopui-1.21.1-', 'core': 'thaumcraft-1.21.1-',
               'tinkerer': 'ThaumicTinkerer-1.21.1-', 'compact': 'aoptc4-compact-',
-              'the': 'thaumicenergistics-1.21.1-'}[stage]
+              'the': 'thaumicenergistics-1.21.1-', 'fm': 'ForbiddenMagic-1.21.1-'}[stage]
     prefixes = [prefix] + (['thaumcraft-api-'] if stage == 'core' else [])
     return {prefix + version + suffix for prefix in prefixes for suffix in ('.jar', '-sources.jar')}
 
@@ -296,6 +342,11 @@ def build(stage, force=False):
     lock = read_json(CACHE / 'lock.json')
     for dependency in DEPS[stage]:
         verified(dependency)
+    external = {}
+    if stage == 'fm':
+        if external_records(stage) != lock['external']['fm']:
+            raise ValueError('FM dependency declarations changed after prepare')
+        external = external_paths(lock['external']['fm'])
     channel = lock['mode']
     channels = ('release',) if channel == 'release' else ('release', 'nightly')
     reused = False
@@ -316,13 +367,16 @@ def build(stage, force=False):
             args.append(':mod:compileProductionVerificationJava')
         if stage != 'ui':
             args.append('-PaopUiJar=' + artifact('ui', 'aopui-'))
-        if stage in ('tinkerer', 'the', 'compact'):
+        if stage in ('tinkerer', 'fm', 'the', 'compact'):
             args.extend(['-PthaumcraftApiJar=' + artifact('core', 'thaumcraft-api-'),
                          '-PthaumcraftRuntimeJar=' + artifact('core', 'thaumcraft-1.21.1-')])
         if stage == 'compact':
             args.append('-PtinkererJar=' + artifact('tinkerer', 'ThaumicTinkerer-'))
             args.append('-PthaumicEnergisticsJar=' + artifact('the', 'thaumicenergistics-'))
-        if stage == 'the':
+        if stage == 'fm':
+            args.append('-PtinkererJar=' + artifact('tinkerer', 'ThaumicTinkerer-'))
+            args.extend('-P' + role + '=' + path for role, path in sorted(external.items()))
+        if stage in ('the', 'fm'):
             args.append('sourcesJar')
         subprocess.run(args, cwd=root, check=True)
         paths = []

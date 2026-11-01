@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       release:
-        description: Publish ordinary releases (unchecked updates all four nightlies)
+        description: Publish ordinary releases (unchecked updates all six nightlies)
         type: boolean
         default: false
       force_rebuild:
@@ -21,6 +21,14 @@ on:
         default: ''
       tinkerer_version:
         description: 'Tinkerer version; blank uses its gradle.properties'
+        type: string
+        default: ''
+      fm_version:
+        description: 'Forbidden Magic version; blank uses its gradle.properties'
+        type: string
+        default: ''
+      the_version:
+        description: 'Thaumic Energistics version; blank uses its gradle.properties'
         type: string
         default: ''
       compact_version:
@@ -48,8 +56,11 @@ jobs:
       SUITE_UI_VERSION: ${{ inputs.ui_version || '' }}
       SUITE_CORE_VERSION: ${{ inputs.core_version || '' }}
       SUITE_TINKERER_VERSION: ${{ inputs.tinkerer_version || '' }}
+      SUITE_FM_VERSION: ${{ inputs.fm_version || '' }}
+      SUITE_THE_VERSION: ${{ inputs.the_version || '' }}
       SUITE_COMPACT_VERSION: ${{ inputs.compact_version || '' }}
       SUITE_CORE_REPOSITORY: ${{ github.repository || 'Salossov/AOP-Thaumcraft-4' }}
+      SUITE_FM_REPOSITORY: ${{ vars.FORBIDDEN_MAGIC_REPOSITORY || 'Salossov/AOPTC4-Forbidden-Magic' }}
       SUITE_THE_REPOSITORY: ${{ vars.THAUMIC_ENERGISTICS_REPOSITORY || 'Salossov/AOPTC4-Thaumic-Energistics' }}
       SUITE_UI_REPOSITORY: ${{ vars.AOPUI_REPOSITORY || 'Salossov/AOP-UI' }}
       SUITE_TINKERER_REPOSITORY: ${{ vars.TINKERER_REPOSITORY || 'Salossov/AOPTC4-Thaumic-Tinkerer' }}
@@ -98,6 +109,16 @@ jobs:
           ref: ${{ vars.THAUMIC_ENERGISTICS_REF || 'main' }}
           token: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
           path: .dependencies/thaumicenergistics
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Check out Forbidden Magic
+        if: ${{ !env.ACT }}
+        uses: actions/checkout@v7
+        with:
+          repository: ${{ env.SUITE_FM_REPOSITORY }}
+          ref: ${{ vars.FORBIDDEN_MAGIC_REF || 'main' }}
+          token: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
+          path: .dependencies/forbidden
           fetch-depth: 0
           persist-credentials: false
       - name: Check build and publication rules
@@ -221,6 +242,41 @@ jobs:
           path: ${{ steps.build_tinkerer.outputs.path }}
           key: ${{ steps.build_tinkerer.outputs.key }}
 
+      - name: Plan Forbidden Magic artifact identity
+        id: plan_fm
+        run: python3 .github/scripts/suite.py plan fm
+      - name: Restore verified release Forbidden Magic
+        id: cache_fm_release
+        if: ${{ !env.ACT && !inputs.force_rebuild }}
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/mod-suite/fm/release
+          key: ${{ steps.plan_fm.outputs.release-key }}
+      - name: Restore verified nightly Forbidden Magic
+        id: cache_fm_nightly
+        if: ${{ !env.ACT && !inputs.force_rebuild && !inputs.release && steps.cache_fm_release.outputs.cache-hit != 'true' }}
+        uses: actions/cache/restore@v5
+        with:
+          path: .cache/mod-suite/fm/nightly
+          key: ${{ steps.plan_fm.outputs.nightly-key }}
+      - name: Find matching published Forbidden Magic
+        if: ${{ !env.ACT }}
+        env:
+          GH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
+        run: python3 .github/scripts/suite.py fetch fm
+      - name: '4 - Build or reuse Forbidden Magic'
+        id: build_fm
+        env:
+          SUITE_RELEASE_CACHE_HIT: ${{ steps.cache_fm_release.outputs.cache-hit }}
+          SUITE_NIGHTLY_CACHE_HIT: ${{ steps.cache_fm_nightly.outputs.cache-hit }}
+        run: python3 .github/scripts/suite.py build fm
+      - name: Save verified Forbidden Magic
+        if: ${{ !env.ACT && steps.build_fm.outputs.store == 'true' }}
+        uses: actions/cache/save@v5
+        with:
+          path: ${{ steps.build_fm.outputs.path }}
+          key: ${{ steps.build_fm.outputs.key }}
+
       - name: Plan ThE artifact identity
         id: plan_the
         run: python3 .github/scripts/suite.py plan the
@@ -243,7 +299,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
         run: python3 .github/scripts/suite.py fetch the
-      - name: '4 - Build or reuse ThE'
+      - name: '5 - Build or reuse ThE'
         id: build_the
         env:
           SUITE_RELEASE_CACHE_HIT: ${{ steps.cache_the_release.outputs.cache-hit }}
@@ -278,7 +334,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.DEPENDENCY_TOKEN || github.token }}
         run: python3 .github/scripts/suite.py fetch compact
-      - name: '5 - Build or reuse Compact'
+      - name: '6 - Build or reuse Compact'
         id: build_compact
         env:
           SUITE_RELEASE_CACHE_HIT: ${{ steps.cache_compact_release.outputs.cache-hit }}
@@ -301,7 +357,7 @@ jobs:
           path: dist/suite/*
           if-no-files-found: error
           retention-days: 14
-      - name: Verify all four publication plans locally
+      - name: Verify all six publication plans locally
         if: ${{ env.ACT }}
         run: python3 .github/scripts/suite.py publish --dry-run
       - name: Publish to each mod repository

@@ -35,13 +35,13 @@ class SuiteTests(unittest.TestCase):
         self.directory.cleanup()
 
     def lock(self, mode):
-        suite.write_json(suite.CACHE / 'lock.json', dict(format=1, mode=mode, recipe='recipe', runtime={'java': '21'},
+        suite.write_json(suite.CACHE / 'lock.json', dict(format=1, mode=mode, external={'fm': {}}, recipe='recipe', runtime={'java': '21'},
             repositories=suite.REPOSITORIES, sources={stage: dict(version='1.0.0', revision=(str(index + 1) * 40), content=stage)
                                                       for index, stage in enumerate(suite.STAGES)}))
 
     def jars(self, stage, version, folder):
         prefix = {'ui': 'aopui-1.21.1-', 'core': 'thaumcraft-1.21.1-',
-                  'tinkerer': 'ThaumicTinkerer-1.21.1-', 'compact': 'aoptc4-compact-', 'the': 'thaumicenergistics-1.21.1-'}[stage]
+                  'tinkerer': 'ThaumicTinkerer-1.21.1-', 'compact': 'aoptc4-compact-', 'the': 'thaumicenergistics-1.21.1-', 'fm': 'ForbiddenMagic-1.21.1-'}[stage]
         names = [prefix + version + '.jar', prefix + version + '-sources.jar']
         if stage == 'core':
             names += ['thaumcraft-api-' + version + '.jar', 'thaumcraft-api-' + version + '-sources.jar']
@@ -224,11 +224,11 @@ class SuiteTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'checksum'):
             suite.plan('compact')
 
-    def test_suite_does_not_publish_dependency_the(self):
+    def test_suite_publishes_all_six_components(self):
         self.seed_all()
         with contextlib.redirect_stdout(io.StringIO()) as output:
             suite.publish(dry_run=True)
-        self.assertNotIn('the', json.loads(output.getvalue()))
+        self.assertEqual(set(json.loads(output.getvalue())), {'ui','core','tinkerer','fm','the','compact'})
 
     def test_toolchain_changes_invalidate_cache(self):
         first = suite.plan('ui')['release-key']
@@ -288,8 +288,8 @@ class SuiteTests(unittest.TestCase):
     def test_collection_verifies_all_artifacts_again(self):
         self.seed_all()
         suite.collect()
-        self.assertEqual(len(list(Path('dist/suite').glob('*.jar'))), 10)
-        self.assertEqual(len(Path('dist/suite/SHA256SUMS.txt').read_text().splitlines()), 10)
+        self.assertEqual(len(list(Path('dist/suite').glob('*.jar'))), 14)
+        self.assertEqual(len(Path('dist/suite/SHA256SUMS.txt').read_text().splitlines()), 14)
         self.assertEqual(set(suite.read_json(Path('dist/suite/manifest.json'))['stages']), set(suite.PUBLIC_STAGES))
 
     def test_bad_metadata_is_rejected_even_with_matching_checksum(self):

@@ -2,6 +2,8 @@
 
 ## 1.1.0 — 2026-10-30
 
+- Include Forbidden Magic and Thaumic Energistics in the single six-mod suite build, artifact bundle and release publication.
+
 - Use NeoForge loader ID `thaumcraft_aop` while retaining the `thaumcraft` content namespace, existing configs and integration detection.
 
 - Build AOP CI dependencies from source automatically; verify source identities and JAR checksums without manual archive variables.
